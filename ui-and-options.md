@@ -33,3 +33,10 @@ Combine the automatic Options UI system with localized strings and input binding
 - Use `[SettingsUIDirPicker]` for filesystem selectors when storing exports or logs.
 - Expose read-only summaries with `[SettingsUIMultilineText]` for quick player feedback.
 - For dynamic UI beyond the options menu, route data through shared services or serialized singletons and update via ECS UI systems.
+
+## Shared UI & Localization Dependencies
+
+- Adopt shared icon libraries (e.g., Unified Icon Library) to reference UI assets via `coui://uil/<Style>/<Icon>.svg` without duplicating SVGs; styles include standard, dark, and colored themes.
+- Integrate localization helper mods such as I18n Everywhere to load JSON locale files from a `lang/` folder, contribute to centralized packs, or ship an `i18n.json` descriptor alongside your module.
+- When depending on external libraries (ExtraLib, icon packs), document the requirement in `mod.json` and in-game options so players enable prerequisites before launching.
+- Provide graceful fallbacks (default icons, English strings) when the dependency is missing, and surface warnings through the options UI.

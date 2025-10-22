@@ -41,3 +41,4 @@ Vice & Order modules follow the standard CS2 code mod layout, expanded with shar
 - When disabling vanilla systems, store the resulting `SystemHandle` or access via `World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<>()` and set `Enabled = false`.
 - Use `UpdateSystem.UpdateAt` / `UpdateAfter` / `UpdateBefore` with explicit `SystemUpdatePhase` enums to guarantee deterministic ordering.
 - Unpatch Harmony hooks during `OnDispose` or module shutdown to support hot reloads.
+- Treat external mod libraries (ExtraLib, Unified Icon Library, I18n Everywhere) as first-class dependencies: declare them in `mod.json`, check presence during `OnLoad`, and provide fallback behaviour when missing.

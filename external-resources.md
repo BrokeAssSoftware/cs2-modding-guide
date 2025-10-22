@@ -25,6 +25,16 @@ Authoritative and community references that inform the Vice & Order modding stac
 - [Realistic Path Finding](https://github.com/ruzbeh0/RealisticPathFinding) - DOTS system replacement patterns, settings UX, interop hooks.
 - [Time2Work (Realistic Trips)](https://github.com/ruzbeh0/Time2Work) - multi-phase scheduling, UI replacement, data separation.
 - [Achievement Fixer](https://github.com/River-Mochi/AchievementFixer) - lightweight systems, localization overrides, idle-by-default design.
+- [Anarchy](https://github.com/yenyang/Anarchy) - disables placement error checks, adds elevation lock, and exposes net/prop overrides.
+- [Better Bulldozer](https://github.com/yenyang/BetterBulldozer) - bulldozer filters for hidden markers, sub-elements, and moving objects.
+- [ExtraDetailingTools](https://github.com/AlphaGaming7780/ExtraDetailingTools) - transform gizmo, net lane kit, surfaces, decals, snap-to-surface toggle.
+- [ExtraAssetsImporter](https://github.com/AlphaGaming7780/ExtraAssetsImporter) - imports unofficial surfaces and decals with asset pack recommendations.
+- [ExtraLib](https://github.com/AlphaGaming7780/ExtraLib) - shared dependency library for the Extra toolchain.
+- [Unified Icon Library](https://github.com/algernon-A/UnifiedIconLibrary) - shared SVG icon bundles injected via `coui://uil/...`.
+- [I18n Everywhere](https://github.com/baka-gourd/I18NEveryWhere) - localization pipeline with embedded locale support and language packs.
+- [Write Everywhere](https://github.com/klyte45/CS2-WriteEverywhere) - customizable text, image, and mesh overlays with layout instancing.
+- [WE Module Template](https://github.com/klyte45/CS2-WEModuleTemplate) - starter project for distributing Write Everywhere atlases, layouts, and fonts.
+- [Asset Packs Manager](https://github.com/CitiesSkylinesModding/CS2-AssetPacksManager) - playset aware asset catalog with reports and localization helpers.
 
 ## Local Snapshots
 
