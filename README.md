@@ -13,5 +13,6 @@ This guide curates everything we learned from official Cities: Skylines II docs,
 - `code-patterns.md` - bootstrap snippets for `Mod`, `Setting`, localization, and system scheduling.
 - `options-attributes.md` - attribute quick reference for building Options UI classes.
 - `external-resources.md` - curated list of official wiki pages, community guides, and sample mods.
+- `tool-extensions.md` - bulldozer filters, sub-element removal, placement overrides, and transform tooling.
 
 Reference links use the official wiki slugs documented in `Agents.md`. Update this index when new sections land.

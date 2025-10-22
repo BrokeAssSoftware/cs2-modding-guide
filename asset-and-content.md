@@ -27,7 +27,7 @@ Vice & Order leans on custom models, maps, and data packs. Use these guidelines 
 ## Detailing & Placement Overrides
 
 - Study Anarchy for techniques to relax placement validation, add relative elevation controls, and expose per-tool toggles without breaking vanilla systems.
-- Better Bulldozer demonstrates filtered demolition flows (surfaces, invisible markers, sub-elements) and reset buttons that preserve save integrity.
+- Better Bulldozer demonstrates filtered demolition flows (surfaces, invisible markers, sub-elements) and reset buttons that preserve save integrity; see `tool-extensions.md` for the raycast filter walkthrough.
 - ExtraDetailingTools bundles a transform gizmo, snap-to-surface toggle, and curated menus (surfaces, decals, net lanes); replicate the pattern when exposing rich asset banks.
 - ExtraAssetsImporter highlights how to stage unofficial surface and decal packs with clear risk messaging ahead of official editor support.
 - Keep shared helpers (e.g., ExtraLib) in a dedicated dependency module so content packs and tooling stay lightweight.

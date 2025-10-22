@@ -1,6 +1,7 @@
 # Project Architecture
 
-Vice & Order modules follow the standard CS2 code mod layout, expanded with shared patterns from the researched mods.
+Vice & Order modules follow the standard CS2 code mod layout, expanded with shared patterns from the researched mods.  
+This guide now also tracks shared performance budgets, terminology definitions, and cross-module API contracts referenced by the backlog.
 
 ## Core Classes
 
@@ -42,3 +43,40 @@ Vice & Order modules follow the standard CS2 code mod layout, expanded with shar
 - Use `UpdateSystem.UpdateAt` / `UpdateAfter` / `UpdateBefore` with explicit `SystemUpdatePhase` enums to guarantee deterministic ordering.
 - Unpatch Harmony hooks during `OnDispose` or module shutdown to support hot reloads.
 - Treat external mod libraries (ExtraLib, Unified Icon Library, I18n Everywhere) as first-class dependencies: declare them in `mod.json`, check presence during `OnLoad`, and provide fallback behaviour when missing.
+
+## Shared Performance Targets
+
+Backlog acceptance criteria reference the following baseline hardware and budgets unless otherwise noted:
+
+- **Reference hardware:** Intel i7-11700K (or equivalent Ryzen 7 5800X), NVIDIA RTX 3070, 32 GB RAM, 1440p, Medium graphics preset.
+- **Frame budget targets:** Simulation updates ≤ 5 ms per frame; UI updates ≤ 2 ms per frame; background analytics ≤ 1 ms per frame.
+- **Stability definition:** “No frame hitches” means no dropped frames > 16 ms over a one-minute simulated period.
+- **Benchmark saves:** Use the shared regression seeds listed in `plan/ep-core/feature-deterministic-simulation-loop.md` for deterministic profiling.
+
+Stories should reference this section (`See Docs → Project Architecture → Shared Performance Targets`) when validating performance criteria.
+
+## Terminology & Schema Glossary
+
+To keep cross-module language consistent, backlog stories should link here when introducing the following concepts:
+
+- **Identity Triangle:** `(loyalty, fear, opportunity)` scalar values in the range `0.0 – 1.0`, defaults `0.5`. Serialized in `vno_economy.identity` payloads.
+- **Ideology Vector:** `(reformist, developer, lawAndOrder, unionist, populist, viceAligned)` array of floats `0.0 – 1.0`, normalized to sum ≤ 1.0.
+- **Influence Metrics:** Accumulated action points per faction, stored as `float current`, `float decayRate`, `float maxCapacity`.
+- **Heat Index:** Normalized scalar `0.0 – 100.0`, updated per laundering cycle; thresholds at `25`, `50`, `75` trigger escalation tiers.
+- **Legitimacy & Trust:** Values `0.0 – 100.0` persisted in `vno_order.legitimacy` / `vno_governance.trust`.
+
+Add new terms here when they first appear in design discussions to avoid ambiguity in future stories.
+
+## Event & API Reference Stubs
+
+Stories that introduce or require specific contracts should link to this table as definitions evolve:
+
+| Contract | Summary | Status |
+| --- | --- | --- |
+| `HeatChangedEvent` | `{ factionId: Guid, previous: float, current: float, delta: float, timestamp: long }` | Draft |
+| `GangEvent` | `{ type: enum, territoryId: Guid, actors: Guid[], loyaltyDelta: float, liquidityDelta: float }` | Draft |
+| `IFinanceService` | Methods: `GetBalances(factionId)`, `InitiateLaunder(job)`, `SetAutoPolicy(policyId, enabled)` | Draft |
+| `IVoteService` | Methods: `ScheduleSession(config)`, `GetForecast(sessionId)`, `SubmitInfluence(action)` | Draft |
+| `IHealthService` | Methods: `GetStress(districtId)`, `RegisterProgram(programConfig)`, `ReportOutcome(outcome)` | Draft |
+
+As implementation matures, promote draft entries into `docs/API_REFERENCE.md` and update references accordingly.
