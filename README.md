@@ -1,4 +1,4 @@
-# Vice & Order CS2 Modding Guide
+﻿# Vice & Order CS2 Modding Guide
 
 This guide curates everything we learned from official Cities: Skylines II docs, community wikis, and the codebases we studied (`RealisticPathFinding`, `AchievementFixer`, `Time2Work`, and the vanilla templates). Use it as the working playbook when building and maintaining the Vice & Order module stack.
 
@@ -27,8 +27,13 @@ This guide curates everything we learned from official Cities: Skylines II docs,
 - `content/asset-pack-management.md` - manage large asset collections with playset awareness.
 
 ## Shared Dependencies
-- `dependencies/shared-library-extra.md` - structure and version shared helper libraries.
-- `ui/shared-icon-library.md` - consume SVG icon packs via Unified Icon Library.
+- `dependencies/shared-library-extra.md` - structure and version shared helper libraries (ExtraLib is a core dependency).
+- `ui/shared-icon-library.md` - consume SVG icon packs via Unified Icon Library (required for consistent UI).
 - `localization/i18n-integration.md` - integrate I18n Everywhere for translation support.
+
+### Dependency Strategy
+- Treat ExtraLib, Unified Icon Library, and I18n Everywhere as required runtime dependencies for shared UI, icons, and localisation.
+- Leverage Write Everywhere as the overlay canvas for signage/dashboards; contribute modules rather than maintaining a fork.
+- Reimplement bulldozer overrides, placement filters, and detailing controls in-house using the documented patterns to align with Vice & Order safety requirements.
 
 Reference links use the official wiki slugs documented in `Agents.md`. Update this index when new sections land.
