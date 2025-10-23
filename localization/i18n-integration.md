@@ -1,65 +1,44 @@
-# I18n Everywhere Integration
+﻿# I18n Everywhere Integration
 
-I18n Everywhere is the localization backbone for Vice & Order. It mounts locale dictionaries directly into the Cities: Skylines II runtime, watches for JSON updates, and lets community translators ship fixes without us cutting a new release. Treat it as a required dependency for every playable module.
-
-## Why We Rely On It
-- Loads locale JSON from our `lang/` folders automatically; no custom loaders or asset bundles.
-- Pulls weekly community updates from GitHub/ParatransZ so end users stay current.
-- Exposes runtime tools (export, reload, key logging) that make QA and contributor workflows painless.
-- Gives us a single contract across C# systems, React UI packages, and Write Everywhere overlays.
+I18n Everywhere is the localisation backbone for Vice & Order. It mounts locale dictionaries directly into the Cities: Skylines II runtime, watches for JSON updates, and lets community translators ship fixes without us cutting a new release.
 
 ## Quick Start Checklist
-- Declare `baka.I18NEverywhere` wherever the game checks dependencies (`mod.json`, `PublishConfiguration.xml`, release notes).
-- Ship at least one complete `en-US.json` under `lang/` for each module and include the folder in your build output.
+- Declare `baka.I18NEverywhere` as a dependency in every module that uses shared localisation.
+- Ship at least one complete `en-US.json` under `lang/` and make sure MSBuild copies the folder into the deploy directory.
 - Wrap user-facing strings in translation keys (Options UI, tooltips, notifications, UI React components).
-- Provide a fallback path or warning if I18n Everywhere is missing so the mod remains usable in English.
-- Document how translators can contribute (Crowdin, Discord threads, upstream localization repo pull requests).
+- Provide a fallback path when the dependency is missing so the mod remains usable in English.
+- Document how translators can contribute (Crowdin, Discord, upstream localisation repository).
 
-## Step-by-Step Integration
+## Wire the Dependency
+- **`mod.json`** - add `baka.I18NEverywhere` to the dependencies array.
+- **`Properties/PublishConfiguration.xml`** - add the Paradox Mods ID (`75426`) so publishing installs I18n Everywhere automatically.
+- **Runtime guard (optional)** - if you want to boot without the dependency (for example developer builds), detect the assembly and fall back to embedded English strings with a single warning.
 
-### 1. Wire The Dependency
-- **`mod.json`** – add `baka.I18NEverywhere` to the dependency list used by your template (`dependencies`, `modDependencies`, etc.). Mark it required so CS2 installs it automatically.
-- **`Properties/PublishConfiguration.xml`** – add the Paradox Mods ID (`75426`) so publishing pulls I18n Everywhere as a prerequisite:
+## Package Locale Bundles
+1. Create a `lang/` folder next to the module assembly.
+2. Add locale JSON files named by BCP-47 tags (`en-US.json`, `fr-FR.json`, `zh-HANS.json`).
+3. Copy the folder during build:
+   ```xml
+   <ItemGroup>
+     <Content Include="lang\**\*.json">
+       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+     </Content>
+   </ItemGroup>
+   ```
+4. Verify the output contains `%AppData%/LocalLow/Colossal Order/Cities Skylines II/Mods/<ModuleId>/lang/<locale>.json` after build.
 
-```xml
-<Publish>
-  ...
-  <Dependency Id="75426" DisplayName="I18n Everywhere" />
-</Publish>
-```
+I18n Everywhere scans the directory on load and merges dictionaries into the active locale.
 
-- **Runtime guard (optional)** – if you still want to boot without the dependency (e.g., developer builds), check for the loaded assembly and downgrade to embedded English strings. Emit a single warning via the module logger so players know localization is limited.
-
-### 2. Package Locale Bundles
-1. Create a `lang/` folder next to the module assembly (`vno-core/lang`, `vno-vice/lang`, etc.).
-2. Add locale JSON files named with BCP-47 tags (`en-US.json`, `fr-FR.json`, `zh-HANS.json`).
-3. Ensure the folder is copied into the published mod:
-
-```xml
-<!-- In your <Project> file -->
-<ItemGroup>
-  <Content Include="lang\**\*.json">
-    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-  </Content>
-</ItemGroup>
-```
-
-4. When the project builds, verify the output contains:  
-`%AppData%/LocalLow/Colossal Order/Cities Skylines II/Mods/<ModuleId>/lang/<locale>.json`
-
-I18n Everywhere scans that directory on load and merges dictionaries into the active locale.
-
-### 3. Author Translation Keys
-- **Prefix everything** with a stable namespace: `VNO.Core`, `VNO.Vice`, `VNO.UI.Campaigns`, etc. This prevents clashes with other mods and keeps exports tidy.
-- **Follow vanilla categories** so the UI knows where to render strings:
-  - `Options.SECTION[Namespace.Settings]` – section titles in the options menu.
-  - `Options.GROUP[Namespace.Settings.General]` – group headers.
-  - `Options.OPTION[Namespace.Settings.FlagName]` / `Options.OPTION_DESCRIPTION[...]` – setting labels and tooltips.
-  - `Tools.INFO[...]`, `Tutorials.*`, `Notifications.*`, `UI.*` – match the vanilla surface you are extending.
-- **Use `string.Format` tokens** (`{0}`, `{1:P0}`, `{2:N0}`) for variables; I18n Everywhere forwards them untouched so you can format via `Translate(..., args)`.
+## Author Translation Keys
+- Prefix every key with a stable namespace (`VNO.Core`, `VNO.Vice`, `VNO.UI.Campaigns`).
+- Follow vanilla categories so the UI knows where to render strings:
+  - `Options.SECTION[Namespace.Settings]` - section titles
+  - `Options.GROUP[Namespace.Settings.General]` - group headers
+  - `Options.OPTION[Namespace.Settings.FlagName]` / `Options.OPTION_DESCRIPTION[...]` - option labels and descriptions
+  - `Tools.INFO[...]`, `Tutorials.*`, `Notifications.*`, `UI.*` - match the vanilla surface you are extending
+- Use `string.Format` tokens (`{0}`, `{1:P0}`, `{2:N0}`) for variables; I18n Everywhere forwards them untouched.
 
 Example `lang/en-US.json`:
-
 ```json
 {
   "Options.SECTION[VNO.Core.Settings]": "Vice & Order",
@@ -70,81 +49,56 @@ Example `lang/en-US.json`:
   "Notifications.DESCRIPTION[VNO.Order.SquadDispatched]": "{0} squad en route to {1}."
 }
 ```
+Mirror the file for other locales and only include keys that already have English copy.
 
-Mirror that file for other locales and only include keys that are already populated in English—blank strings block UI rendering.
+## Consume Localised Strings
+- **Options UI** - attributes accept locale keys directly:
+  ```csharp
+  [SettingsUISection("Options.SECTION[VNO.Core.Settings]", "Options.GROUP[VNO.Core.Settings.General]")]
+  [SettingsUICheckbox]
+  public bool EnableViceLoop { get; set; }
+  ```
+- **C# helpers** - add a helper so gameplay systems can translate on demand:
+  ```csharp
+  internal static class LocaleHelper
+  {
+      private static LocalizationDictionary Active => GameManager.instance.localizationManager.activeDictionary;
 
-### 4. Consume Localized Strings In Code
-- **Options UI / settings** – attributes take locale keys directly:
+      internal static string Translate(string key, params object[] args)
+          => Active.TryGetValue(key, out var value)
+              ? string.Format(value, args)
+              : key;
+  }
+  ```
+- **React UI** - import `LocalizedString` from `cs2/l10n`:
+  ```tsx
+  <LocalizedString
+    localeKey="Notifications.DESCRIPTION[VNO.Order.SquadDispatched]"
+    args={[squad, district]}
+  />
+  ```
 
-```csharp
-[SettingsUISection("Options.SECTION[VNO.Core.Settings]", "Options.GROUP[VNO.Core.Settings.General]")]
-[SettingsUICheckbox]
-public bool EnableViceLoop { get; set; }
-```
+## Language Packs and `i18n.json`
+- To subscribe to the community pack, add an `i18n.json` manifest that points to the repositories or folders you want to consume. Follow the upstream folder structure so translators can reuse their tooling.
+- Keep the embedded `lang/` folder even when using external packs; language packs are additive and provide overrides when available.
 
-- **C# helpers** – add a tiny extension so gameplay systems can translate on demand while still functioning if the dictionary is absent:
+## Contributor Workflow
+- Document translation touchpoints in each module's `Agents.md` so writers know what to cover.
+- Link the shared Crowdin project (or preferred tool) through `<ExternalLink Type="crowdin" ... />` in `PublishConfiguration.xml`.
+- Credit translators in changelogs and note where string exports are stored (`ModsData/<ModuleId>/Localization/`).
+- When accepting pull requests, validate JSON formatting (for example `npm exec ajv`) to avoid corrupted files.
 
-```csharp
-using Colossal.Localization;
-using Game.SceneFlow;
+## QA and Troubleshooting
+- Launch the game with `-developerMode -uiDeveloperMode` to access the I18n Everywhere diagnostics tab (reload dictionaries, export keys, toggle key logging).
+- Confirm the `lang/` directory ships with the DLL and filenames use correct casing (`zh-HANS.json`, not `zh-Hans.json`).
+- Missing translations show the raw key; scan logs for `[I18NE] Missing key:` entries to trace typos.
+- Guard gameplay text with the helper above so missing keys return the key name instead of throwing.
+- Export the merged dictionary via I18n Everywhere and diff against previous builds to confirm no keys were dropped.
 
-namespace VNO.Core.Localization;
+## References
+- Official wiki: <https://cs2.paradoxwikis.com/Localize_your_mod>
+- Community localisation repo: <https://github.com/baka-gourd/I18NEverywhere.Localization>
+- Options attribute guide: [Options Attributes](../options-attributes.md)
 
-internal static class Locale
-{
-    private static LocalizationDictionary Active => GameManager.instance.localizationManager.activeDictionary;
+With these steps in place, both humans and automation can keep localisation consistent across the entire Vice & Order stack.
 
-    internal static string Translate(string key, params object[] args)
-        => Active.TryGetValue(key, out var value)
-            ? string.Format(value, args)
-            : key;
-}
-```
-
-Usage:
-
-```csharp
-var message = Locale.Translate("Notifications.DESCRIPTION[VNO.Order.SquadDispatched]", squadName, districtName);
-```
-
-- **React UI** – import `LocalizedString` from `cs2/l10n` and pass the same keys:
-
-```tsx
-import { LocalizedString } from "cs2/l10n";
-
-export function SquadBanner({ squad, district }: Props) {
-  return (
-    <LocalizedString
-      localeKey="Notifications.DESCRIPTION[VNO.Order.SquadDispatched]"
-      args={[squad, district]}
-    />
-  );
-}
-```
-
-I18n Everywhere keeps the dictionaries synchronized, so switching languages in-game updates both C# and UI surfaces immediately.
-
-### 5. Central Packs & `i18n.json`
-- To subscribe to the community pack maintained at <https://github.com/baka-gourd/I18NEverywhere.Localization>, point an `i18n.json` manifest at the folder structure you wish to consume. The manifest lives beside your DLL and lists one or more locale feeds (follow the upstream repo format for key names).
-- When you need a custom pack (e.g., internal playtests), host the bundle yourself, add an entry in `i18n.json`, and keep the folder hierarchy identical to the upstream repository so translators can reuse their tooling.
-- Always leave the embedded `lang/` folder in place—language packs are additive and provide overrides but the game falls back to your local copy if the pack is unavailable.
-
-### 6. Contributor Workflow
-- Document translation points in each module’s `Agents.md` so writers know which features to cover.
-- Link the shared Crowdin project (or preferred tooling) through `<ExternalLink Type="crowdin" ... />` in `PublishConfiguration.xml`.
-- Credit translators in `CHANGELOG.md` and Paradox Mods release notes and mention how to request string exports (`ModsData/<ModuleId>/Localization/` after using the I18n Everywhere export button).
-- When accepting pull requests, run a quick JSON validation (`npm exec ajv` or similar) to ensure files remain UTF-8 and properly formatted.
-
-### 7. QA & Troubleshooting
-- Launch the game with `--developerMode --uiDeveloperMode` to get access to the I18n Everywhere diagnostics tab (reload dictionaries, export keys, toggle key logging).
-- If strings fail to load, confirm the `lang/` directory shipped with the DLL and that filenames use the correct casing (`zh-HANS.json`, not `zh-Hans.json`).
-- Missing translations show the raw key—scan the log for `[I18NE] Missing key:` entries to trace typos.
-- Use the extension method above to guard gameplay text; returning the key name is preferable to throwing `KeyNotFoundException`.
-- For regression testing, export the merged dictionary via I18n Everywhere and diff against previous builds to confirm no keys were dropped.
-
-### 8. References & Further Reading
-- Official wiki: [Localize your mod](https://cs2.paradoxwikis.com/Localize_your_mod)
-- Community repo: <https://github.com/baka-gourd/I18NEverywhere.Localization>
-- Vice & Order linkage: see `docs/cs2-modding-guide/options-attributes.md` for settings usage and `docs/vision/index.md` for tone constraints that affect copywriting.
-
-Keeping these steps in sync ensures both humans and automation (agents, CI validators, translation bots) can reason about localization across the entire Vice & Order stack.

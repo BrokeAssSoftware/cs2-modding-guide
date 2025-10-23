@@ -1,40 +1,47 @@
-# Shared Library Pattern (ExtraLib)
+﻿# Shared Library Pattern (ExtraLib)
 
-ExtraLib is the canonical example of how we ship a shared dependency in the Vice & Order ecosystem. It bundles icon hosts, localisation glue, UI systems, entity utilities, and Harmony patches that multiple micro-mods need. This guide covers both the ExtraLib-specific integration steps and the conventions we follow for any shared runtime dependency.
-
-## Why ExtraLib Sits In Our Stack
-- Provides common UI and notification systems (`ExtraPanelsUISystem`, icons, toolbar helpers) so feature mods stay lean.
-- Exposes localisation utilities (`ExtraLocalization`) that bridge embedded resources before I18n Everywhere loads.
-- Centralises Harmony patches and debug logging so we do not duplicate boilerplate across modules.
-- Ships as its own Paradox mod (ID `75724`) with active Crowdin translations and icon assets, which we would otherwise have to maintain per module.
+ExtraLib is the canonical example of how we ship a shared dependency in the Vice & Order ecosystem. It bundles icon hosts, localisation helpers, UI systems, entity utilities, and Harmony patches that multiple micro-mods need. This guide covers how to wire the dependency, reference its API safely, and share assets without duplicating work.
 
 ## Quick Start Checklist
-- Download the matching ExtraLib release and store the DLL under `dependencies/ExtraLib/<version>/ExtraLib.dll`.
-- Add a shared MSBuild reference with `<Private>false</Private>` so the DLL is used at compile time but not copied into any module output.
-- Declare ExtraLib as a hard dependency in every code/UI module you publish (PublishConfiguration, `mod.json`, README).
-- At runtime, verify the assembly is present and short-circuit optional features with a clear log warning if it is missing.
+- Install the matching ExtraLib release and store the DLL under `dependencies/ExtraLib/<version>/ExtraLib.dll`.
+- Add a shared MSBuild reference with `<Private>false</Private>` so the DLL is used at compile time but not copied into module outputs.
+- Declare ExtraLib as a hard dependency in code and UI modules (`PublishConfiguration.xml`, `mod.json`, README).
+- At runtime, verify the assembly is present and downgrade gracefully when it is missing.
 - Use the public hooks (`EL.AddOnInitialize`, `Icons.LoadIconsFolder`, etc.) instead of re-implementing their behaviour.
 
-## Step-by-Step Integration
+## Declare the Dependency
+- **Publish configuration**
+  ```xml
+  <Publish>
+    ...
+    <Dependency Id="75724" DisplayName="ExtraLib" />
+  </Publish>
+  ```
+- **UI module `mod.json`**
+  ```json
+  {
+    "id": "VNO.UI",
+    "dependencies": ["algernon.ExtraLib"]
+  }
+  ```
+  Confirm the dependency identifier and casing against the current ExtraLib release.
+- **Documentation** - list ExtraLib as required in module READMEs and release notes so players install it alongside Vice & Order modules.
 
-### 1. Bring ExtraLib Into The Workspace
-1. Download the latest release from <https://mods.paradoxplaza.com/mods/75724/Windows> or GitHub.
-2. Drop the compiled DLL and accompanying assets into a versioned folder:
-   ```
-   dependencies/
-     ExtraLib/
-       1.4.4/
-         ExtraLib.dll
-         release-notes.md
-   ```
-3. Track the version in `dependencies/manifest.yml` (or the ledger you maintain) so automation knows which build is in use.
-4. When upgrading, keep the previous folder until all consuming mods are verified against the new API.
+## Runtime Guard
+Even with metadata in place, add a defensive check before using the API:
+```csharp
+private static bool IsExtraLibAvailable()
+{
+    return AppDomain.CurrentDomain
+        .GetAssemblies()
+        .Any(a => a.GetName().Name.Equals("ExtraLib", StringComparison.OrdinalIgnoreCase));
+}
+```
+When `IsExtraLibAvailable()` returns `false`, swap icons or panels for text fallbacks and log a single warning.
 
-### 2. Reference The Assembly From Every Module
-Use a central `Directory.Build.props` so all micro-mod projects inherit the dependency:
-
+## Reference the Assembly from Projects
+Use a shared `Directory.Build.props` to hook the DLL into every module:
 ```xml
-<!-- Directory.Build.props at repo root -->
 <Project>
   <PropertyGroup>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))</RepoRoot>
@@ -49,92 +56,34 @@ Use a central `Directory.Build.props` so all micro-mod projects inherit the depe
   </ItemGroup>
 </Project>
 ```
+Setting `<Private>false</Private>` ensures the DLL is referenced at compile time but not bundled with the mod, because players install ExtraLib separately.
 
-If you cannot use a common props file, add the same `<Reference>` block to the individual `.csproj`, pointing the `HintPath` to the shared DLL. Setting `<Private>false</Private>` ensures the compiler sees ExtraLib but the deploy step does not redistribute it (players receive the dependency through Paradox Mods).
+## Use the Provided Helpers
+- **Icons** - store shared SVGs in ExtraLib and reference them via `coui://extralib/...`. Update the dependency when you add icons so every consumer picks them up.
+- **Localization** - call `ExtraLocalization.LoadLocalization(Logger, Assembly.GetExecutingAssembly())` for embedded dictionaries before I18n Everywhere attaches.
+- **Panels and notifications** - use `ExtraPanelsUISystem.AddExtraPanel<T>` and `EL.m_NotificationUISystem.AddOrUpdateNotification` rather than recreating menu scaffolding.
+- **Entity edit queue** - queue prefab or entity mutations with `EL.AddOnEditEnities` so ExtraLib handles progress notifications and coroutine timing.
 
-### 3. Declare Runtime Dependencies For Publication
-- **Code mods (`PublishConfiguration.xml`)**
-  ```xml
-  <Publish>
-    ...
-    <Dependency Id="75724" DisplayName="ExtraLib" />
-  </Publish>
-  ```
-- **UI mods / Gameface bundles (`mod.json`)** – add the dependency ID from ExtraLib’s `mod.json` in the `dependencies` array. Always verify the identifier from the current release package so it matches the exact casing used by Paradox Mods.
-- **README / workshop copy** – list ExtraLib under “Required Mods” to eliminate support churn.
+Document any new conventions (icon folder names, embedded resource layout) in the relevant module `Agents.md` so future work stays consistent.
 
-Our `build` and `publish` scripts should fail fast if any module omits the dependency declaration; keep that validator up to date when you add new micro-mods.
+## Dependency Hygiene for Micro-Mods
+- Keep third-party DLLs outside project directories (`dependencies/<Vendor>/<Version>/`) and never commit them under `bin/` or `obj/`.
+- Version dependencies explicitly; avoid floating to "latest" without testing the entire module stack.
+- Run `dotnet clean` and rebuild after upgrades to clear stale metadata.
+- Enforce dependency declarations via CI by linting `PublishConfiguration.xml`, `mod.json`, and README badges.
+- When replacing a shared library, stage the change: add the new dependency, migrate modules, then remove the old reference once every consumer is updated.
 
-### 4. Guard And Initialise At Runtime
-Even with metadata in place, add a defensive check before you touch the API. This keeps developer builds usable when the dependency is absent.
+## QA and Troubleshooting
+- **Missing dependency warning in-game** - confirm `PublishConfiguration.xml` and Paradox Mods metadata list ExtraLib. The launcher only auto-installs declared dependencies.
+- **`FileNotFoundException: ExtraLib` during load** - check the `<HintPath>` and ensure the DLL is present. Relative paths that cross drive letters often break on CI runners.
+- **Runtime API changes** - ExtraLib follows semantic versioning. When upgrading (for example `1.4.x` to `1.5.x`), re-run smoke tests for every module that uses its APIs.
+- **Icon placeholders** - confirm the ExtraLib release contains the new SVG and reference it with `Icons.COUIBaseLocation`. Cached bundles sometimes require a game restart after icon updates.
+- **Performance** - icons are vector files; keep them lightweight (< 50 KB). Run `svgo` or similar optimisers in CI.
 
-```csharp
-using System;
-using System.Linq;
-using Colossal.Logging;
-using ExtraLib;
-using ExtraLib.Helpers;
-using ExtraLib.Systems;
-
-private static readonly ILog Log = LogManager.GetLogger("VNO.Vice").SetShowsErrorsInUI(false);
-
-public void OnLoad(UpdateSystem updateSystem)
-{
-    var extraLibAssembly = AppDomain.CurrentDomain
-        .GetAssemblies()
-        .FirstOrDefault(a => a.GetName().Name == "ExtraLib");
-
-    if (extraLibAssembly == null)
-    {
-        Log.Warn("ExtraLib missing. Vice loop features that rely on shared UI will stay disabled.");
-        return;
-    }
-
-    EL.AddOnInitialize(() =>
-    {
-        // Runs once the main menu finishes initialising.
-        RegisterVicePanels(updateSystem.World.GetOrCreateSystemManaged<ExtraPanelsUISystem>());
-    });
-
-    EL.AddOnEditEnities(entities =>
-    {
-        // Example: patch prefabs once the notification system is ready.
-        ApplyPrefabOverrides(entities);
-    },
-    new EntityQueryDesc
-    {
-        All = new[] { ComponentType.ReadOnly<MyPrefabTag>() }
-    });
-}
-```
-
-Prefer the helpers that ExtraLib ships (`ExtraLocalization.LoadLocalization`, `Icons.LoadIconsFolder`, `MainSystem.AddOnInitialize`, etc.) over custom implementations—this keeps behaviour consistent across modules and simplifies upgrades.
-
-### 5. Reuse Assets And Utilities
-- **Icons** – store shared SVGs in ExtraLib and reference them via `coui://extralib/...`. When you add new icons, update the ExtraLib release so every consumer sees them without bundling duplicates.
-- **Localization** – for embedded strings, call `ExtraLocalization.LoadLocalization(Logger, Assembly.GetExecutingAssembly())` before I18n Everywhere attaches. This is handy for debug menus or fallback copy.
-- **Panels & Notifications** – use `ExtraPanelsUISystem.AddExtraPanel<T>` and `EL.m_NotificationUISystem.AddOrUpdateNotification` rather than reinventing menu scaffolding.
-- **Entity edit queue** – schedule expensive prefab or entity mutations through `EL.AddOnEditEnities` so ExtraLib handles progress notifications and coroutine timing.
-
-Document any new conventions you add (naming, icon folders, embedded resource layout) in the module’s `Agents.md` so future contributors follow the same structure.
-
-## Dependency Hygiene For Micro-Mods
-- Keep third-party DLLs outside project directories (`dependencies/<Vendor>/<Version>/`) and never check them into `bin/` or `obj/`.
-- Version every dependency explicitly; do not “float” to latest without coordinated testing across the module suite.
-- Run `dotnet clean` + `dotnet build` after upgrades to ensure no project caches stale metadata about the DLL.
-- Enforce dependency declarations via CI (lint `PublishConfiguration.xml`, `mod.json`, and README badges).
-- When removing or replacing a shared library, stage the change: drop new dependency first, migrate modules, then remove the old reference once all downstream mods are rebuilt.
-
-## QA & Troubleshooting
-- **Missing dependency warning in-game** – confirm the dependency ID is in both `PublishConfiguration.xml` and the Paradox Mods upload form. The player installer only auto-downloads declared dependencies.
-- **`FileNotFoundException: ExtraLib` during load** – check the `<HintPath>` in your project file and make sure the DLL is present. A relative path that crosses drive letters often breaks on CI machines.
-- **Runtime API changes** – ExtraLib follows semantic versioning. If you upgrade from `1.4.x` to `1.5.x`, re-run automated smoke tests for every feature mod that touches icons, notifications, or prefab hooks.
-- **Icon placeholders showing** – ensure the ExtraLib release contains the new SVG and that you referenced the path via `Icons.COUIBaseLocation`. Cached bundles sometimes require a game restart after icon updates.
-
-## References & Further Reading
+## References
 - ExtraLib repository: <https://github.com/AlphaGaming7780/ExtraLib>
-- Dependency overview: `docs/cs2-modding-guide/project-architecture.md`
-- UI conventions: `docs/cs2-modding-guide/ui-and-options.md`
-- Localization playbook: `docs/cs2-modding-guide/localization/i18n-integration.md`
+- Set-up steps for shared libraries: [Project Architecture](../project-architecture.md)
+- Icon usage patterns: [Shared Icon Library](../ui/shared-icon-library.md)
 
-Follow these steps whenever you introduce or update a shared library so both humans and automation can reason about the dependency graph that powers Vice & Order.
+Follow these practices when introducing or updating shared dependencies so both humans and automation can reason about the Vice & Order stack.
+

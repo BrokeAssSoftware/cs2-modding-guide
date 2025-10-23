@@ -1,9 +1,9 @@
-# UI and Options
+﻿# UI and Options
 
-Vice & Order exposes most configuration through the built-in Options UI plus custom panels backed by Gameface React. This guide walks through building a complete settings pipeline, handling localization, wiring key bindings, and synchronising UI changes with simulation systems.
+Vice & Order exposes most configuration through the built-in Options UI plus custom panels backed by Gameface React. This guide walks through building a settings pipeline, handling localization, wiring key bindings, and synchronising UI changes with simulation systems.
 
-## Build a Settings Class Step by Step
-1. **Derive from `ModSetting`**
+## Build a Settings Class
+1. Derive from `ModSetting` and apply layout attributes:
    ```csharp
    [FileLocation("ModsSettings\\VNO.Core\\VNO.Core")]
    [SettingsUIGroupOrder(GeneralGroup, DebugGroup)]
@@ -16,7 +16,7 @@ Vice & Order exposes most configuration through the built-in Options UI plus cus
        public Setting(IMod mod) : base(mod) { }
    }
    ```
-2. **Define properties**
+2. Define properties with UI metadata:
    ```csharp
    [SettingsUISlider(0.1f, 5.0f, 0.1f, Unit.kFloatSingleFraction)]
    [SettingsUISection("Simulation", GeneralGroup)]
@@ -38,10 +38,10 @@ Vice & Order exposes most configuration through the built-in Options UI plus cus
        }
    }
    ```
-3. **Load and register in `Mod.OnLoad`**
+3. Load and register in `Mod.OnLoad`:
    ```csharp
    _setting = new Setting(this);
-   AssetDatabase.global.LoadSettings(Id, _setting, new Setting(this));
+   AssetDatabase.global.LoadSettings(ModuleId, _setting, new Setting(this));
    _setting.RegisterInOptionsUI();
    ```
 
@@ -63,76 +63,60 @@ Vice & Order exposes most configuration through the built-in Options UI plus cus
            }
        }
 
-       private static KeyValuePair<string, string> Map(string key, string value) =>
-           new KeyValuePair<string, string>(key, value);
+       private static KeyValuePair<string, string> Map(string key, string value) => new(key, value);
    }
    ```
-2. Register before calling `RegisterInOptionsUI`:
+2. Register locales before calling `RegisterInOptionsUI`:
    ```csharp
-   LocalizationManager.AddSource("en-US", new LocaleEN(_setting));
-   LocalizationManager.AddSource("fr-FR", new LocaleFR(_setting));
+   var manager = GameManager.instance.localizationManager;
+   manager.AddSource("en-US", new LocaleEN(_setting));
+   manager.AddSource("fr-FR", new LocaleFR(_setting));
    ```
 3. Listen for dictionary changes when UI state must refresh immediately:
    ```csharp
    GameManager.instance.localizationManager.onActiveDictionaryChanged += OnLocaleChanged;
    ```
-   Rebuild cached UI labels when this event fires.
 
 ## Synchronise Settings with Systems
-- Inject your `Setting` instance into simulation systems through singletons or constructor parameters.
-- Use `ComponentLookup` or shared singletons to propagate runtime values. Example:
-  ```csharp
-  protected override void OnUpdate()
-  {
-      if (!_settings.EnableViceLoop) return;
-      var multiplier = _settings.HeatMultiplier;
-      // Apply multiplier in simulation logic
-  }
-  ```
-- For expensive changes (e.g., toggling entire systems) register callbacks on the setting so you can enable/disable systems dynamically without restarting.
+- Inject the `Setting` instance into systems via constructors, singletons, or shared services.
+- Apply changes immediately and surface confirmation messages so players know updates landed.
+- For costly toggles, enable or disable systems dynamically by flipping `Enabled` flags.
 
 ## Key Binding Pipeline
-1. Decorate the setting property:
+1. Decorate the binding property:
    ```csharp
    [ProxyBinding("VNO.Core.ToggleVicePanel")]
    [SettingsUIKeyboardAction("Toggle Vice Panel", DefaultKey = KeyCode.V)]
    [SettingsUIGamepadAction("Toggle Vice Panel", DefaultButton = GamepadButton.DPadUp)]
    public Binding ToggleVicePanel { get; set; }
    ```
-2. Provide localized captions:
+2. Provide localized captions via `GetBindingMapLocaleID` / `GetBindingKeyLocaleID`.
+3. Watch `InputManager.instance.onBindingConflict` and show inline warnings when conflicts occur.
+4. Handle the action in code:
    ```csharp
-   _setting.GetBindingMapLocaleID(nameof(Setting.ToggleVicePanel)) => "Bindings.MAP[VNO.Core]";
-   _setting.GetBindingKeyLocaleID(nameof(Setting.ToggleVicePanel)) => "Bindings.KEY[VNO.Core.ToggleVicePanel]";
-   ```
-3. Resolve conflicts by watching `InputManager.instance.onBindingConflict` and surfacing a toast or inline warning when the player selects a conflicting key.
-4. Implement an action handler in a UI or simulation system:
-   ```csharp
-   InputManager.instance.AddBindingHandler(
-       "VNO.Core.ToggleVicePanel",
-       _ => ToggleViceDashboard());
+   InputManager.instance.AddBindingHandler("VNO.Core.ToggleVicePanel", _ => ToggleViceDashboard());
    ```
 
-## Options UX Guidelines
-- Group sliders, toggles, and actions by functional area (e.g., Simulation, Analytics, Debug) and keep sections short.
-- Show current values in the section header when small adjustments are expected (for example `Heat multiplier: 1.25x`).
-- Always provide a Reset button for complex sections and confirm destructive actions with `[SettingsUIConfirmation]`.
-- When options affect live systems, apply changes immediately and display a short success message so players know the update landed.
+## Options UX Tips
+- Group related toggles and sliders by functional area (Simulation, Analytics, Debug).
+- Display current values in section headers for complex sliders (for example `Heat multiplier: 1.25x`).
+- Always provide a Reset button with confirmation for destructive options.
+- Apply changes without requiring a game restart whenever possible.
 
 ## Runtime UI Beyond Options
-- **Read-only summaries** – use `[SettingsUIMultilineText]` to display analytics or current system status inside the options view.
-- **Dynamic panels** – for custom dashboards, build Gameface React components that subscribe to ECS buffers or query services via message channels (see `ui-react-pipeline.md`).
-- **File pickers** – `[SettingsUIDirPicker]` and `[SettingsUIFilePicker]` are ideal for export locations or importing data packs; validate paths before saving.
+- Use `[SettingsUIMultilineText]` to show read-only summaries (status, telemetry).
+- For dynamic dashboards, build Gameface React components that read data from ECS buffers or service APIs.
+- `[SettingsUIDirPicker]` and `[SettingsUIFilePicker]` are ideal for export/import paths; validate the path before saving.
 
-## Handling Dependency Failures Gracefully
-- Detect missing ExtraLib, UIL, or I18n Everywhere instances during `OnLoad` and set boolean flags in your settings class.
-- Disable UI sections that require absent dependencies and display a short explanation inside the options menu rather than throwing.
-- Provide a button that opens the dependency mod page or documentation so players can install the missing requirement easily.
+## Dependency Handling
+- Detect missing ExtraLib, Unified Icon Library, or I18n Everywhere during `OnLoad` and set flags so UI sections can disable themselves.
+- Provide links or guidance that help players install missing dependencies without leaving the game confused.
 
 ## Testing Checklist
-1. Build in Debug configuration and open the Options menu with translation sets (English plus at least one non-Latin locale) to ensure labels resolve.
-2. Change each setting and confirm persistence after restarting the game.
-3. Rebind every key and validate that conflicts raise visible warnings.
-4. Run with dependencies removed to confirm fallbacks behave correctly.
-5. Trigger developer mode and confirm debug-only sections stay hidden in release builds.
+1. Build in Debug configuration and verify the Options menu renders correctly in at least two languages.
+2. Change each setting, reload the game, and confirm persistence.
+3. Rebind every key and ensure conflicts display warnings.
+4. Launch without shared dependencies to confirm graceful fallbacks.
+5. Enable `-developerMode` and verify debug-only sections stay hidden in release builds.
 
-Following this workflow ensures every Vice & Order module ships with predictable configuration, clear localization, and responsive UI panels that integrate cleanly with the underlying simulation.
+Follow this workflow to deliver predictable configuration experiences across the Vice & Order module stack.

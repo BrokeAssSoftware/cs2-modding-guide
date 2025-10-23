@@ -1,4 +1,4 @@
-# Asset and Content
+﻿# Asset and Content
 
 Vice & Order ships custom models, maps, data packs, and detailing content. This guide explains how to build assets with the Cities: Skylines II toolchain, manage unofficial packs responsibly, and prepare releases for Paradox Mods.
 
@@ -10,12 +10,12 @@ Vice & Order ships custom models, maps, data packs, and detailing content. This 
    - Export mesh files as FBX 2018 with Y-up, centimetres, and tangents.
    - Separate material slots by suffix (`_Win`, `_Gls`, `_Gra`) to follow vanilla conventions.
 3. **Texture workflow**
-   - Use the official Substance templates or a custom pipeline that outputs the CS2 channel packing:  
-     - `_BaseColor` – RGB albedo  
-     - `_MaskMap` – RGBA packed mask  
-     - `_ControlMask` – optional atlas control mask  
-     - `_Normal` – OpenGL normal map  
-     - `_Emissive` – emissive intensity  
+   - Use the official Substance templates or a custom pipeline that outputs the CS2 channel packing:
+     - `_BaseColor` - RGB albedo
+     - `_MaskMap` - RGBA packed mask
+     - `_ControlMask` - optional atlas control mask
+     - `_Normal` - OpenGL normal map
+     - `_Emissive` - emissive intensity
    - Stick to PNG or TGA files with power-of-two resolutions (512, 1024, 2048). Atlas only when multiple assets share a single material.
 4. **LOD strategy**
    - Author LOD meshes with 60 percent fewer triangles and simplified materials.
@@ -23,9 +23,9 @@ Vice & Order ships custom models, maps, data packs, and detailing content. This 
 
 ## Bringing Assets into the Unity Editor
 1. Launch the CS2 editor from the game launcher with developer mode enabled.
-2. Import meshes, materials, and textures into the project’s `Assets/` folder, keeping per-asset subfolders.
+2. Import meshes, materials, and textures into the project's `Assets/` folder, keeping per-asset subfolders.
 3. Create prefabs using the vanilla templates (building, prop, decal, surface) and assign exported materials.
-4. Validate lighting and normal orientation using the editor’s preview scenes.
+4. Validate lighting and normal orientation using the editor's preview scenes.
 5. Populate metadata (cost, maintenance, service radius) before exporting.
 
 ## Map and Scenario Authoring
