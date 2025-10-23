@@ -1,4 +1,4 @@
-# Shared Icon Library
+﻿# Shared Icon Library
 
 Reference mod: `UnifiedIconLibrary`.
 
@@ -180,9 +180,9 @@ Only add bespoke SVGs when UIL lacks a suitable asset.
 - **Large SVGs** - keep icons under roughly 50 KB. Run `svgo` or similar optimisers in CI to strip metadata and shrink paths.
 
 ## References
-- Unified Icon Library repo: https://github.com/algernon-A/UnifiedIconLibrary
-- ExtraLib icon helpers: `docs/cs2-modding-guide/dependencies/shared-library-extra.md`
-- Gameface and React pipeline: `docs/cs2-modding-guide/ui-react-pipeline.md`
+- Unified Icon Library repo: <https://github.com/algernon-A/UnifiedIconLibrary>
+- ExtraLib icon helpers: [Shared Library: ExtraLib](shared-library-extra.md)
+- Gameface and React pipeline: [UI React Pipeline](../ui-react-pipeline.md)
 - Tone and accessibility guidance: `docs/vision/index.md`
 
 Following these steps ensures both humans and automation can source icons quickly, maintain visual cohesion, and extend the library safely when our scenarios demand new art.

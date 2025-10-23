@@ -1,11 +1,11 @@
-# Vice & Order CS2 Modding Guide
+﻿# Vice & Order CS2 Modding Guide
 
 Welcome to the working playbook for building and maintaining the Vice & Order mod ecosystem. Everything in `docs/cs2-modding-guide/` is curated from official Cities: Skylines II documentation, community research, and lessons learned from dissected mods such as Realistic Path Finding, Achievement Fixer, and Time2Work.
 
 ## Start Here
 - [Agents](Agents.md) - orientation file for automation assistants and newcomers.
 - [Setup Overview](setup/overview.md) - links to launch profiles, toolchain installation, project bootstrap, and publishing routines.
-- [Project Architecture](project-architecture.md) - module lifecycle, dependency checks, shared terminology and API contracts.
+- [Architecture Overview](architecture/overview.md) - module lifecycle, dependency checks, shared terminology and API contracts.
 - [Simulation Systems](simulation-systems.md) - DOTS system replacement patterns, multi-phase scheduling, testing checklist.
 - [Quality and Operations](quality-and-operations.md) - logging, debugging, memory hygiene, release checklist, automation ideas.
 
@@ -17,10 +17,18 @@ Welcome to the working playbook for building and maintaining the Vice & Order mo
 - [Build and Publish Workflow](setup/build-and-publish.md) - wire MSBuild, run daily build loops, and publish releases.
 - [Environment Health Checks](setup/environment-health-checks.md) - verify folders, certificates, and regression saves.
 
+## Architecture
+- [Module Layout](architecture/module-layout.md) - naming conventions, folder structure, shared props.
+- [Lifecycle and Initialization](architecture/lifecycle-and-initialization.md) - standard load sequence and sample Mod implementation.
+- [Settings and Data Management](architecture/settings-and-data.md) - options, localisation, logging, data boundaries.
+- [System Scheduling](architecture/system-scheduling.md) - replacing vanilla systems and managing update phases.
+- [Dependency Strategy](architecture/dependency-strategy.md) - coordinate shared libraries and fallbacks.
+- [Performance Targets and Terminology](architecture/performance-and-terminology.md) - hardware budgets, vocabulary, draft contracts.
+
 ## UI and Interaction
 - [UI and Options](ui-and-options.md) - Options UI patterns, localization workflow, key bindings, runtime UI guidance.
 - [UI React Pipeline](ui-react-pipeline.md) - Gameface React setup, hot reload loop, module registry usage, communication with C# systems.
-- [Shared Icon Library](ui/shared-icon-library.md) - integrating Unified Icon Library and shipping custom icon hosts.
+- [Shared Icon Library](dependencies/shared-icon-library.md) - integrating Unified Icon Library and shipping custom icon hosts.
 - [I18n Integration](localization/i18n-integration.md) - I18n Everywhere workflow for embedded locales, packs, and fallbacks.
 
 ## Content and Assets
@@ -37,7 +45,7 @@ Welcome to the working playbook for building and maintaining the Vice & Order mo
 
 ## Shared Dependencies
 - [Shared Library: ExtraLib](dependencies/shared-library-extra.md) - ExtraLib integration and shared library hygiene.
-- [Shared Icon Library](ui/shared-icon-library.md) - Unified Icon Library usage (icons, COUI hosts, QA tips).
+- [Shared Icon Library](dependencies/shared-icon-library.md) - Unified Icon Library usage (icons, COUI hosts, QA tips).
 - [I18n Everywhere Integration](localization/i18n-integration.md) - I18n Everywhere integration.
 
 ## Reference Material
@@ -52,3 +60,7 @@ Welcome to the working playbook for building and maintaining the Vice & Order mo
 - Reference mod IDs when documenting dependencies so automation can enforce publish requirements.
 
 Use this directory as the authoritative source for CS2-related workflows inside Vice & Order. Contributions should prioritise actionable steps, code examples, and references to upstream documentation.
+
+
+
+
