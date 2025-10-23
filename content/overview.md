@@ -64,3 +64,4 @@ Vice & Order ships custom models, maps, data packs, and detailing content. This 
 - Encourage translators and asset creators to contribute via shared platforms (Crowdin, Discord) and credit them in changelogs.
 
 Following these steps ensures Vice & Order asset work remains high quality, performant, and easy for players to install and maintain.
+

@@ -41,3 +41,4 @@ Attribute coverage distilled from the Options UI wiki and reference mods. Use th
 - `[SettingsUICustomControl]` - attaches custom Gameface components; requires UI mod support.
 
 Refer back to the `docs/cs2-modding-guide/ui-and-options.md` playbook for usage examples, and mirror the localization patterns from `code-patterns.md` when wiring labels.
+

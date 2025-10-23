@@ -98,7 +98,8 @@ Mirror the file for other locales and only include keys that already have Englis
 ## References
 - Official wiki: <https://cs2.paradoxwikis.com/Localize_your_mod>
 - Community localisation repo: <https://github.com/baka-gourd/I18NEverywhere.Localization>
-- Options attribute guide: [Options Attributes](../options-attributes.md)
+- Options attribute guide: [Options Attribute Reference](../ui/reference/options-attributes.md)
 
 With these steps in place, both humans and automation can keep localisation consistent across the entire Vice & Order stack.
+
 

@@ -182,7 +182,8 @@ Only add bespoke SVGs when UIL lacks a suitable asset.
 ## References
 - Unified Icon Library repo: <https://github.com/algernon-A/UnifiedIconLibrary>
 - ExtraLib icon helpers: [Shared Library: ExtraLib](shared-library-extra.md)
-- Gameface and React pipeline: [UI React Pipeline](../ui-react-pipeline.md)
+- Gameface and React pipeline: [React Pipeline](../ui/react-pipeline/overview.md)
 - Tone and accessibility guidance: `docs/vision/index.md`
 
 Following these steps ensures both humans and automation can source icons quickly, maintain visual cohesion, and extend the library safely when our scenarios demand new art.
+
