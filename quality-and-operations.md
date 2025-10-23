@@ -1,38 +1,61 @@
-# Quality And Operations
+# Quality and Operations
 
-Robust Vice & Order modules rely on disciplined debugging, memory hygiene, and operational safeguards.
+Reliability matters when multiple Vice & Order modules share a save. This guide covers logging, debugging, performance hygiene, security, release management, and automation so contributors can diagnose issues quickly and ship stable builds.
 
-## Logging
+## Logging Strategy
+- Create a single logger per module:
+  ```csharp
+  internal static readonly ILog Log = LogManager
+      .GetLogger("VNO.Vice")
+      .SetShowsErrorsInUI(false);
+  ```
+- Log the executable asset path, toolchain version, and dependency status during `OnLoad`.
+- Use structured messages (`Log.Info($"Heat changed | district={districtId} | value={heat}")`) so log parsing scripts can extract fields.
+- Gate verbose output behind settings toggles or `#if DEBUG` blocks. Never leave high-volume logging enabled in release builds.
+- Write large diagnostics (JSON dumps, telemetry exports) to `ModsDataTemp/<Module>` and timestamp them so they can be purged safely.
 
-- Use the `Colossal.Logging` API; create per-module loggers and store them on static fields.
-- Control verbosity through configuration flags (`LogLevel`) or `#if DEBUG` blocks.
-- Log Harmony patch lists, folder locations, and detected companion mods during `OnLoad`.
-- Redirect heavy diagnostic dumps to files under `ModsDataTemp/<Mod>` to preserve runtime performance.
+## Debugging Toolkit
+- **Debug builds** – build with `dotnet build -c Debug` to keep symbols and optimiser-friendly code.
+- **Attach IDEs** – Rider and Visual Studio can attach to `Cities2.exe`; use conditional breakpoints to avoid pausing every frame.
+- **Developer mode** – use `--developerMode` to unlock simulation speed controls, object browser (`Home`), and console commands.
+- **UI debugging** – run `npm run dev` for hot reload and inspect React trees via `http://localhost:9444/`.
+- **Regression saves** – maintain a curated set of saves (traffic stress, budget collapse, vice escalation) under `docs/regression/` with notes describing expected behaviour.
+- **Diagnostic commands** – expose developer-only commands (for example `vno.heat.dump`) that output state snapshots without requiring external tools.
 
-## Debugging
+## Memory and Performance Hygiene
+- Dispose `NativeArray`, `NativeList`, `BlobAssetReference`, and `NativeSlice` instances. Use `using` blocks or explicit `Dispose()` in `OnDestroy`.
+- Avoid capturing `Entity` or `ComponentLookup` inside lambdas that run asynchronously; copy values locally before scheduling jobs.
+- Batch structural changes. Collect entities in a `NativeList<Entity>` and process them in a single `EntityCommandBuffer` rather than calling `EntityManager` repeatedly.
+- If a system allocates temporary memory, annotate the code with `ProfilerMarker` scopes and watch allocations in Unity Profiler.
+- Use job-friendly patterns (`ScheduleParallel`) where possible, and prefer `WithReadOnly` / `WithDisposeOnCompletion` to keep the Burst compiler happy.
 
-- Attach Visual Studio or Rider to the `Cities2.exe` process; enable symbols by building in Debug configuration.
-- Use developer mode (`--developerMode`) to toggle simulation speed, unlock milestones, and inspect object IDs.
-- For UI issues, run `npm run dev` and inspect with the Gameface debugger at `http://localhost:9444/`.
-- Maintain a library of regression saves targeting common scenarios (traffic spike, budget collapse, high crime) for quick reproduction.
+## Security and Stability Controls
+- Never download or execute external binaries at runtime. All dependencies must ship through Paradox Mods.
+- Validate configuration input (ranges, enums, file paths) before applying it. Reject invalid values and surface a clear message in the Options UI.
+- Handle missing dependencies gracefully: disable dependent features, log a single warning, and keep the mod running.
+- Strip developer-only commands and debug panels from release builds with conditional compilation or build-time flags.
+- Review third-party contributions for suspicious IO or network calls before merging.
 
-## Memory & Performance
+## Release Checklist
+1. **Build** – run `dotnet build -c Release` and `npm run build` (if applicable).
+2. **Smoke test** – launch the game, load regression saves, and exercise critical features.
+3. **Logs** – inspect `%AppData%\LocalLow\Colossal Order\Cities Skylines II\Logs\Log_<date>.txt` for warnings or errors introduced by the change.
+4. **Dependencies** – confirm `PublishConfiguration.xml` lists every required mod (ExtraLib, UIL, I18n Everywhere, etc.).
+5. **Changelog** – update the module changelog and Paradox Mods release notes with concise, player-friendly summaries.
+6. **Publish** – use the in-game publisher (`PublishNewVersion`) and verify the uploaded package contains both C# and UI bundles.
+7. **Tag** – create a git tag and link the Paradox Mod ID for traceability.
 
-- Dispose `NativeArray`, `NativeList`, and `BlobAssetReference` instances in `OnDestroy` or when scope ends (see `how_to_avoid_memory_leaks.md`).
-- Avoid capturing `Entity` references inside lambdas that outlive their chunk iteration.
-- Batch component queries to reduce sync points; prefer `Entities.ForEach().ScheduleParallel()` when no structural changes occur.
-- Profile with Unity Profiler or Visual Studio performance tools to catch allocations per frame.
+## Automation and CI Ideas
+- **Build validation** – run `dotnet build`, `npm run build`, and linting tasks on every pull request.
+- **Manifest linting** – validate YAML/JSON policy packs and module manifests against a schema to catch missing fields.
+- **Wiki sync** – script periodic fetches of official wiki pages (`docs/research/wiki/`) and diff changes; flag notable updates that may require guide revisions.
+- **Dependency audit** – add a check that compares live files against `PublishConfiguration.xml` to ensure dependency lists stay in sync.
+- **Telemetry smoke tests** – run scripted city simulations (headless or accelerated) and assert that logs do not exceed defined error thresholds.
 
-## Security & Stability
+## Incident Response Playbook
+- Capture affected save files, logs, and the list of active mods from players reporting bugs.
+- Attempt to reproduce using the closest regression save; document reproduction steps in an issue tracker.
+- If the incident is regression-worthy, cut a hotfix branch, write automated tests to cover the scenario, and re-run the release checklist before publishing the fix.
+- Share a short post-mortem in `docs/ops/reports/` when the incident surfaces a new process or automation gap.
 
-- Never execute external binaries or download code at runtime; follow guidance in `mod_security.md`.
-- Validate user input from settings before applying (ranges, enums) to avoid corrupting simulation data.
-- Handle missing dependencies gracefully; log and disable features rather than throwing.
-- Strip debug-only commands from release builds to reduce attack surface.
-
-## Automation & Tooling
-
-- Plan linters/checkers for YAML policy packs and module manifests (see TODO in `Agents.md`).
-- Add CI hooks to run `dotnet build`, `npm run build`, and unit/integration tests once available.
-- Script periodic wiki snapshot comparisons to surface API changes and feed this guide.
-- Keep issue templates for module bugs (system name, logs, reproduction steps) to streamline support.
+Keeping these practices in place ensures Vice & Order modules remain stable, debuggable, and easy to support across multiple codebases and contributors.

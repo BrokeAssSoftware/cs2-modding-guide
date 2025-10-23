@@ -1,45 +1,66 @@
-# Asset And Content
+# Asset and Content
 
-Vice & Order leans on custom models, maps, and data packs. Use these guidelines from the official asset pipeline and community notes.
+Vice & Order ships custom models, maps, data packs, and detailing content. This guide explains how to build assets with the Cities: Skylines II toolchain, manage unofficial packs responsibly, and prepare releases for Paradox Mods.
 
-## PBR Asset Workflow
+## Authoring PBR Assets
+1. **Modeling basics**
+   - Model at 1:1 scale and keep pivots aligned with placement expectations (0,0,0 at ground contact).
+   - Maintain consistent texel density; aim for 256 px per metre for close-up assets and higher for hero pieces.
+2. **Export settings**
+   - Export mesh files as FBX 2018 with Y-up, centimetres, and tangents.
+   - Separate material slots by suffix (`_Win`, `_Gls`, `_Gra`) to follow vanilla conventions.
+3. **Texture workflow**
+   - Use the official Substance templates or a custom pipeline that outputs the CS2 channel packing:  
+     - `_BaseColor` – RGB albedo  
+     - `_MaskMap` – RGBA packed mask  
+     - `_ControlMask` – optional atlas control mask  
+     - `_Normal` – OpenGL normal map  
+     - `_Emissive` – emissive intensity  
+   - Stick to PNG or TGA files with power-of-two resolutions (512, 1024, 2048). Atlas only when multiple assets share a single material.
+4. **LOD strategy**
+   - Author LOD meshes with 60 percent fewer triangles and simplified materials.
+   - Preview LOD swaps inside the editor and profile using the in-game render stats window.
 
-- Model at 1:1 scale; keep texel density consistent and avoid deleting downward faces that contribute to GI.
-- Export meshes as 2018 `.fbx` files with clean pivot alignment; split submeshes with suffixes like `_Win`, `_Gls`, `_Gra` to match vanilla conventions.
-- Supply texture sets as PNGs with case-sensitive suffixes (`_BaseColor`, `_MaskMap`, `_ControlMask`, `_Normal`, `_Emissive`).
-- Use Substance 3D Painter templates (`substance_3d_painter_setup.md`) to export the correct channel packing.
-- Target square textures at least 512x512; atlas variants only when multiple assets share materials.
+## Bringing Assets into the Unity Editor
+1. Launch the CS2 editor from the game launcher with developer mode enabled.
+2. Import meshes, materials, and textures into the project’s `Assets/` folder, keeping per-asset subfolders.
+3. Create prefabs using the vanilla templates (building, prop, decal, surface) and assign exported materials.
+4. Validate lighting and normal orientation using the editor’s preview scenes.
+5. Populate metadata (cost, maintenance, service radius) before exporting.
 
-## Unity Editor Integration
+## Map and Scenario Authoring
+1. **Terrain setup**
+   - Lock elevation ranges early; altering them later disrupts water tables and spline meshes.
+   - Sculpt river beds before importing road or rail splines.
+2. **Resource painting**
+   - Paint resources with broad, feathered brushes to avoid sharp simulation transitions.
+3. **Climate and weather**
+   - Adjust climate curves (temperature, precipitation, aurora) to fit the story scenario and test with accelerated time.
+4. **Checklist before export**
+   - Set start tile, inbound/outbound connections, water availability, and localized display names.
+   - Run the simulation preview for at least five in-game days to ensure services function.
 
-- Install the CS2 editor via the game launcher and open it in developer mode to access debug panels.
-- Workspace focus areas: Map (terrain, water, resources), Climate (lighting curves, weather patterns), Environment (props, vegetation, surfaces), Objects (placeable prefabs and gameplay entities).
-- Use the publishing checklist: start tile, inbound/outbound road, water in the starting area, English map name, and external connections when applicable.
-- For environment assets, profile draw calls and LODs inside the editor before exporting.
+## Managing Unofficial Surface and Decal Packs
+- Stage texture packs under `ModsData/<Module>/AssetPacks/<PackName>` and document expected resolutions and authors.
+- During `OnLoad`, iterate packs, validate manifest files, and register surfaces/decals with the asset database.
+- Provide an in-game browser that lists categories, previews each texture, and allows quick placement with accompanying tools (transform gizmo, snap toggles).
+- Communicate risks clearly: unofficial packs may require republishing when the official editor updates; encourage players to back up saves before heavy experimentation.
 
-## Map Creation Tips
-
-- Define elevation bounds early; adjusting later breaks water tables.
-- Paint resources with smooth gradients; avoid hard edges that generate simulation artifacts.
-- Verify climate curves (temperature, precipitation) align with scenario goals; extreme values affect citizen needs.
-- Use the simulation preview to test spawn points and service coverage prior to shipping.
-
-## Detailing & Placement Overrides
-
-- Study Anarchy for techniques to relax placement validation, add relative elevation controls, and expose per-tool toggles without breaking vanilla systems (see `tooling/validation-overrides.md`).
-- Better Bulldozer demonstrates filtered demolition flows (surfaces, invisible markers, sub-elements) and reset buttons that preserve save integrity (see `tooling/raycast-filters.md` and `tooling/sub-element-removal.md`).
-- ExtraDetailingTools bundles a transform gizmo, snap-to-surface toggle, and curated menus (surfaces, decals, net lanes); replicate the pattern when exposing rich asset banks (see `tooling/transform-gizmos.md`).
-- ExtraAssetsImporter highlights how to stage unofficial surface and decal packs with clear risk messaging ahead of official editor support (see `content/unofficial-asset-import.md`).
-- Keep shared helpers (e.g., ExtraLib) in a dedicated dependency module so content packs and tooling stay lightweight.
-
-## Data And Policy Packs
-
-- Base new policy YAMLs on the vanilla catalogue (`Policies Catalogue` wiki snapshot); document unlock milestones and expected effects.
-- Store module manifests under `docs/modules/` once the schema stabilizes; keep research artifacts under `docs/research/`.
-- When shipping data-only updates, flag dependency versions clearly so downstream modules know when a content patch is required.
+## Policy and Data Packs
+- Base YAML or JSON policy definitions on the official `Policies` catalogue. Include unlock milestones, prerequisites, and effect summaries.
+- Store module manifests under `docs/modules/` and keep raw research artefacts in `docs/research/`.
+- When data-only updates roll out, bump dependency versions so downstream modules know to pull fresh data.
+- Plan validation scripts (CI or command-line tools) to lint manifests and catch missing fields.
 
 ## Marketplace Readiness
+1. Prepare high-resolution thumbnails (16:9) and animated GIFs or short videos showing the asset in action.
+2. Write release notes that include new content, dependency changes, and compatibility notes.
+3. Run through the in-game publishing checklist: dependency declarations, tags, and authentication.
+4. After publishing, verify the Paradox Mods page lists required dependencies (ExtraLib, UIL, etc.) and that downloads include the latest assets.
 
-- Review top-rated mods on [Paradox Mods](https://mods.paradoxplaza.com/games/cities_skylines_2?orderBy=desc&sortBy=best&time=month) for packaging baseline (icons, descriptions, dependency declarations).
-- Include high-resolution thumbnails, changelog entries, and support links in every release.
-- Bundle LOD screenshots or GIFs demonstrating the content in action to build player trust.
+## Support and Maintenance
+- Keep a regression library of maps or saves that feature new assets so QA can reproduce issues quickly.
+- Document known issues, performance costs (triangle counts, texture memory), and recommended LOD distances in the module README.
+- Encourage translators and asset creators to contribute via shared platforms (Crowdin, Discord) and credit them in changelogs.
+
+Following these steps ensures Vice & Order asset work remains high quality, performant, and easy for players to install and maintain.

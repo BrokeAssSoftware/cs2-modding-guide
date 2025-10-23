@@ -1,46 +1,115 @@
 # Simulation Systems
 
-Cities: Skylines II exposes its simulation through Unity DOTS. Vice & Order modules replace and extend systems using the patterns outlined here.
+Cities: Skylines II exposes most gameplay through Unity DOTS systems. Vice & Order modules replace or extend these systems to introduce new mechanics while keeping performance predictable. This guide documents the end-to-end workflow: disabling vanilla systems, wiring custom systems into the update loop, coordinating with Harmony patches, and testing safely.
 
-## Update Phases
+## Update Phases at a Glance
+| Phase | When it Runs | Typical Use |
+| --- | --- | --- |
+| `GameSimulation` | Every frame during live gameplay | AI, economics, policing, vice loops |
+| `EditorSimulation` | While the map/editor is open | Authoring tools, preview logic |
+| `UIUpdate` | Each UI frame | Push data into Gameface bindings |
+| `Deserialize` | Immediately after loading a save | Rehydrate caches or rebuild derived data |
+| `PrefabUpdate` | During asset compilation | Bake prefab metadata, register custom prefabs |
 
-- `GameSimulation`: primary runtime simulation tick; use for AI, economy, policing logic.
-- `EditorSimulation`: runs when the map/editor is active; replicate behavior that must function in authoring tools.
-- `UIUpdate`: execute UI-facing systems that push data to Gameface components.
-- `PrefabUpdate`: initialize prefab data during asset processing.
-- `Deserialize`: rebake caches immediately after save-game loads.
-
-Register systems explicitly with `updateSystem.UpdateAt<T>(phase)` and chain dependencies via `UpdateAfter<TAnchor, TDependency>(phase)` to avoid implicit ordering.
+Always schedule systems explicitly with `updateSystem.UpdateAt` and use `UpdateAfter` / `UpdateBefore` to make dependencies obvious. Avoid relying on implicit DOTS ordering.
 
 ## Replacing Vanilla Systems
+1. Grab the existing system and disable it:
+   ```csharp
+   var world = World.DefaultGameObjectInjectionWorld;
+   world.GetOrCreateSystemManaged<Game.Simulation.ResidentAISystem>().Enabled = false;
+   ```
+2. Register your replacement:
+   ```csharp
+   updateSystem.UpdateAt<VnoResidentAISystem>(SystemUpdatePhase.GameSimulation);
+   updateSystem.UpdateAfter<VnoResidentAISystem, Game.Simulation.StatisticSystem>(SystemUpdatePhase.GameSimulation);
+   ```
+3. Keep scope tight. For example, Realistic Path Finding only disables the resident AI stack, leaving unrelated transport systems untouched. Document each vanilla dependency you disable so future maintainers understand the impact.
 
-- Acquire the vanilla system with `World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<T>()` and set `Enabled = false`.
-- Install custom systems whose `OnCreate` injects required singletons/components and verifies compatibility.
-- Keep replacement scopes tight; for example, `RealisticPathFinding` disables `Game.Simulation.ResidentAISystem` plus its nested `Actions` system before inserting a customized stack.
-- When overriding UI controllers, disable the vanilla `UISystem` counterpart (see `Time2WorkTimeUISystem`) to prevent duplicate rendering.
+## Writing a SystemBase Safely
+```csharp
+public partial class VnoResidentAISystem : SystemBase
+{
+    private EntityQuery _citizenQuery;
+    private ComponentLookup<VnoAttributes> _attributesLookup;
 
-## Conditional Scheduling
+    protected override void OnCreate()
+    {
+        RequireForUpdate<VnoAttributes>();
+        _citizenQuery = GetEntityQuery(ComponentType.ReadOnly<Citizen>(), ComponentType.ReadWrite<VnoAttributes>());
+        _attributesLookup = GetComponentLookup<VnoAttributes>();
+    }
 
-- Wrap `UpdateAt` registrations in configuration gates to keep optional features cheap (for example, skip `PedestrianWalkCostFactorSystem` when `disable_ped_cost` is true).
-- Use component lookups and `EnabledRefRW` handles inside systems to toggle behaviors without forcing world rebuilds.
-- Implement short-lived diagnostic systems that self-disable after a fixed frame count (`AchievementFixerSystem` runs for ~300 frames post-load).
+    protected override void OnUpdate()
+    {
+        var deltaTime = Time.DeltaTime;
+        _attributesLookup.Update(this);
+
+        Entities
+            .WithName("VnoResidentAISystem")
+            .WithStoreEntityQueryInField(ref _citizenQuery)
+            .ForEach((ref VnoAttributes attributes, in Citizen citizen) =>
+            {
+                attributes.Heat = math.clamp(attributes.Heat + deltaTime * attributes.GainRate, 0f, 100f);
+            })
+            .ScheduleParallel();
+    }
+}
+```
+**Key practices**
+- Call `RequireForUpdate<T>()` to prevent the system from running when required components are absent.
+- Cache queries and lookups in `OnCreate` and refresh them inside `OnUpdate` with `.Update(this)`.
+- Use `ScheduleParallel()` when you are not making structural changes; switch to `Schedule()` or `Run()` only when necessary.
+- Guard heavy side effects with settings flags so optional features cost nothing when disabled.
 
 ## Multi-Phase Participation
+Some systems need to run in multiple phases (for example, to rebuild caches immediately after loading a save and again during normal gameplay):
+```csharp
+updateSystem.UpdateAt<VnoHeatCacheSystem>(SystemUpdatePhase.Deserialize);
+updateSystem.UpdateAt<VnoHeatCacheSystem>(SystemUpdatePhase.GameSimulation);
+```
+Inside `OnUpdate`, branch depending on the current phase:
+```csharp
+protected override void OnUpdate()
+{
+    if (SystemAPI.TryGetSingleton(out DeserializeInProgress deserialize) && deserialize.value)
+    {
+        RebuildCaches();
+        return;
+    }
 
-- Systems can register against multiple phases when the behavior spans contexts. `Time2WorkTimeSystem` participates in `GameSimulation`, `EditorSimulation`, and `Deserialize` to synchronize clocks everywhere.
-- Guard per-phase logic inside `OnUpdate` with `UnityEngine.Application.isPlaying` or custom flags when side effects must avoid the editor.
+    if (!Application.isPlaying) return;
+    TickSimulation(Time.DeltaTime);
+}
+```
+This keeps deserialization work isolated from regular per-frame logic.
 
-## Harmony + Systems
+## Conditional Scheduling
+- Gate optional systems behind configuration checks before calling `UpdateAt`. This avoids allocating world handles you never intend to use.
+- If the feature can be toggled at runtime, register the system but disable its logic internally (for example by checking a setting each frame and returning early).
+- Use lightweight components (`EnabledRefRW`) or shared singleton flags to toggle specific behaviours without rebuilding worlds.
 
-- Patch high-level API calls (path queries, expenses) while DOTS systems handle per-entity logic; keep patches focused and log when they execute.
-- Unpatch in `OnDispose` to avoid duplicate patches after reloads or when disabling modules mid-session.
+## Harmony and Systems
+Harmony patches complement DOTS systems when you need to intercept high-level game API calls:
+- Patch entry points such as `CitizenDestinationSystem.FindDestination` to adjust inputs or parameters before your DOTS system consumes them.
+- Keep patches minimal and log when they execute so conflicts are easier to spot.
+- Always unpatch in `OnDispose` (and on hot reload) using the same Harmony ID you used during load.
 
-## Testing Hooks
+## Diagnostics and Testing Hooks
+- Expose developer commands (just-in-time toggles, dumps) behind `--developerMode`. Example: `heat.dump` to write current heat indices to `ModsDataTemp`.
+- Wrap hot code paths in `ProfilerMarker` scopes and capture traces on regression saves.
+- Provide short-lived diagnostic systems that disable themselves after use. Achievement Fixer runs for ~300 frames to flip achievement flags and then idles.
 
-- Expose internal toggles or commands (with `DeveloperMode` active) to adjust multipliers or dump component state.
-- For profiling, wrap heavy computations in `using (ProfilerMarker.Auto())` blocks and run targeted traces in developer builds.
+## Failure Recovery Patterns
+- Validate prerequisites in `OnCreate` and log actionable errors (missing components, absent dependencies). Fail fast so QA knows which module to inspect.
+- Use `TryGetSingleton` when depending on data provided by other VNO modules. If the dependency is missing, log once and degrade gracefully.
+- For expensive operations triggered by save load, run them inside the `Deserialize` phase so players do not experience hitches later in gameplay.
 
-## Failure Recovery
+## Test Checklist Before Shipping a System
+1. **Unit smoke test** – run `dotnet test` or targeted integration tests if available.
+2. **Regression saves** – open the high-crime, budget-collapse, and vice-escalation saves to profile CPU time and watch for errors.
+3. **Hot reload** – reload the mod (disable/enable) to ensure systems unpatch cleanly and settings survive.
+4. **Dependency failure** – launch without ExtraLib / I18n Everywhere and confirm your systems log a warning but continue running with fallbacks.
+5. **Editor session** – open the map editor to confirm systems that should opt out of editor contexts remain idle.
 
-- Validate system prerequisites (component types, shared data) during `OnCreate` and log actionable errors if dependencies are missing.
-- Use `TryGetSingleton` patterns when reading optional data from other modules (e.g., Realistic Path Finding sampling `Time2Work` factors).
+With these patterns, every Vice & Order module can extend the simulation confidently while remaining performant and resilient to future game updates.

@@ -1,82 +1,162 @@
 # Project Architecture
 
-Vice & Order modules follow the standard CS2 code mod layout, expanded with shared patterns from the researched mods.  
-This guide now also tracks shared performance budgets, terminology definitions, and cross-module API contracts referenced by the backlog.
+Vice & Order modules follow the standard Cities: Skylines II code-mod layout but add conventions that keep our micro-mod ecosystem maintainable. Use this playbook whenever you scaffold a new module or refactor an existing one.
 
-## Core Classes
+## Module Layout
+- Assembly naming: keep the assembly, namespace root, and published mod ID identical (for example `vno-core`). This avoids type lookup issues and keeps dependency manifests consistent.
+- Folder structure:
+  ```
+  vno-module/
+    Mod.cs
+    Setting.cs
+    Systems/
+    Services/
+    UI/
+    Localization/
+    Properties/PublishConfiguration.xml
+    Icons/ (optional, see shared icon guide)
+    lang/ (for I18n Everywhere embedded locales)
+  ```
+- Shared MSBuild props: import `Directory.Build.props` (or similar) to centralise references to ExtraLib, UIL, Harmony, and Unity assemblies.
+- Environment paths: resolve everything via `EnvPath` or `ToolchainSettings`. Never hard-code absolute paths; this keeps the project portable across Steam, Game Pass, and dev installations.
 
-- `Mod` implements `IMod`; use `OnLoad(UpdateSystem updateSystem)` to register systems, settings, and localization, and `OnDispose()` to unregister.
-- Instantiate settings early: `m_Settings = new Setting(this); m_Settings.RegisterInOptionsUI();`.
-- Log the active executable asset via `modManager.TryGetExecutableAsset` to help support track deployment paths.
-- Disable vanilla systems or UI controllers before adding replacements to avoid double execution.
+## Lifecycle Flow
+Every `Mod` class should execute these steps in order:
+1. Create module folders with `Directory.CreateDirectory` for `ModsSettings/<Module>` and `ModsData/<Module>` so first-run users do not hit IO exceptions.
+2. Load settings by instantiating your `Setting` class, calling `AssetDatabase.global.LoadSettings`, and registering the Options UI immediately.
+3. Register localization before the Options UI renders so labels resolve on first paint.
+4. Detect dependencies (ExtraLib, UIL, I18n Everywhere, etc.) and set fallback flags when they are missing.
+5. Disable vanilla systems you intend to replace by setting `Enabled = false` on the existing system instance.
+6. Schedule custom systems via `updateSystem.UpdateAt` / `UpdateAfter` / `UpdateBefore` with explicit `SystemUpdatePhase` enums.
+7. Apply Harmony patches last, log the patched methods, and store the Harmony instance for unpatching.
 
-## Settings Pattern
+```csharp
+public sealed class Mod : IMod
+{
+    private const string ModuleId = "VNO.Core";
+    private const string HarmonyId = "vno.core";
 
-- Derive from `ModSetting`, annotate with `[FileLocation("ModsSettings/<Mod>/<Mod>")]` and call `AssetDatabase.global.LoadSettings` to hydrate values.
-- Use `[SettingsUIGroupOrder]`, `[SettingsUIShowGroupName]`, and `[SettingsUISection]` to organize complex options (see `RealisticPathFinding`).
-- Provide sane defaults in `SetDefaults()` and expose a `[SettingsUIButton]` reset action.
-- Keep runtime state out of the settings file; write simulation caches to `ModsData/<Mod>` or `ModsDataTemp/<Mod>` instead.
+    private static readonly ILog Log = LogManager
+        .GetLogger("VNO.Core.Mod")
+        .SetShowsErrorsInUI(false);
 
-## Localization Flow
+    private Harmony? _harmony;
+    private Setting? _setting;
 
-- Register locale sources (`GameManager.instance.localizationManager.AddSource`) before the settings UI loads so labels resolve on first run.
-- Supply `GetOptionLabelLocaleID`, `GetOptionDescLocaleID`, and `GetOptionGroupLocaleID` mappings in dedicated locale classes.
-- Listen for `localizationManager.onActiveDictionaryChanged` when override strings must refresh after a language switch (pattern from `AchievementFixer`).
+    public void OnLoad(UpdateSystem updateSystem)
+    {
+        EnsureDirectories();
 
-## Logging & Diagnostics
+        _setting = new Setting(this);
+        AssetDatabase.global.LoadSettings(ModuleId, _setting, new Setting(this));
+        _setting.RegisterInOptionsUI();
 
-- Create module loggers via `LogManager.GetLogger("Namespace.Mod")` and call `SetShowsErrorsInUI(false)` to keep the notification feed clean.
-- Emit Harmony patch inventories after `PatchAll` to expose conflicts (`GetPatchedMethods()` listing).
-- Gate verbose logs behind conditional compilation (`#if DEBUG`) to avoid runtime overhead in release builds.
-- Record detected companion mods or incompatible versions at load time; expose helper methods (`Time2WorkInterop.GetFactor`) for cross-mod coordination.
+        RegisterLocales(_setting);
 
-## Folder Conventions
+        if (!IsAssemblyLoaded("ExtraLib"))
+        {
+            Log.Warn("ExtraLib missing. Advanced UI features will be disabled.");
+            _setting.HasExtraLib = false;
+        }
 
-- Resolve paths through `EnvPath` (`EnvPath.kUserDataPath`) to stay cross-platform.
-- Lazily create `ModsSettings/<Mod>` and `ModsData/<Mod>` folders if they are missing; prefer `Directory.CreateDirectory` during `OnLoad`.
-- Store per-session output (diagnostic dumps) under `ModsDataTemp` and purge on unload.
+        var world = World.DefaultGameObjectInjectionWorld;
+        world.GetOrCreateSystemManaged<Game.Simulation.ResidentAISystem>().Enabled = false;
 
-## Dependency Management
+        updateSystem.UpdateAt<VnoCoreSystem>(SystemUpdatePhase.GameSimulation);
+        updateSystem.UpdateAfter<VnoCoreSystem, Game.Simulation.StatisticSystem>(SystemUpdatePhase.GameSimulation);
 
-- Keep references to Harmony, DOTS packages, and shared utilities in a `Directory.Packages.props` or `Directory.Build.props` shared across modules.
-- When disabling vanilla systems, store the resulting `SystemHandle` or access via `World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<>()` and set `Enabled = false`.
-- Use `UpdateSystem.UpdateAt` / `UpdateAfter` / `UpdateBefore` with explicit `SystemUpdatePhase` enums to guarantee deterministic ordering.
-- Unpatch Harmony hooks during `OnDispose` or module shutdown to support hot reloads.
-- Treat external mod libraries (ExtraLib, Unified Icon Library, I18n Everywhere) as first-class dependencies: declare them in `mod.json`, check presence during `OnLoad`, and provide fallback behaviour when missing.
+        _harmony = new Harmony(HarmonyId);
+        _harmony.PatchAll(typeof(Mod).Assembly);
+        foreach (var method in _harmony.GetPatchedMethods())
+        {
+            Log.Info($"Patched: {method.Module.Name}:{method.Name}");
+        }
+    }
 
-## Shared Performance Targets
+    public void OnDispose()
+    {
+        _setting?.UnregisterInOptionsUI();
+        _setting = null;
+        _harmony?.UnpatchAll(HarmonyId);
+        _harmony = null;
+    }
 
-Backlog acceptance criteria reference the following baseline hardware and budgets unless otherwise noted:
+    private static void EnsureDirectories()
+    {
+        Directory.CreateDirectory(Path.Combine(EnvPath.kUserDataPath, "ModsSettings", ModuleId));
+        Directory.CreateDirectory(Path.Combine(EnvPath.kUserDataPath, "ModsData", ModuleId));
+    }
 
-- **Reference hardware:** Intel i7-11700K (or equivalent Ryzen 7 5800X), NVIDIA RTX 3070, 32 GB RAM, 1440p, Medium graphics preset.
-- **Frame budget targets:** Simulation updates ≤ 5 ms per frame; UI updates ≤ 2 ms per frame; background analytics ≤ 1 ms per frame.
-- **Stability definition:** “No frame hitches” means no dropped frames > 16 ms over a one-minute simulated period.
-- **Benchmark saves:** Use the shared regression seeds listed in `plan/ep-core/feature-deterministic-simulation-loop.md` for deterministic profiling.
+    private static void RegisterLocales(Setting setting)
+    {
+        var manager = GameManager.instance.localizationManager;
+        manager.AddSource("en-US", new LocaleEN(setting));
+        manager.AddSource("fr-FR", new LocaleFR(setting));
+    }
 
-Stories should reference this section (`See Docs → Project Architecture → Shared Performance Targets`) when validating performance criteria.
+    private static bool IsAssemblyLoaded(string assemblyName) => AppDomain.CurrentDomain
+        .GetAssemblies()
+        .Any(a => a.GetName().Name.Equals(assemblyName, StringComparison.OrdinalIgnoreCase));
+}
+```
 
-## Terminology & Schema Glossary
+## Settings, Data, and State
+- Settings: derive from `ModSetting`, store user preferences only, and keep runtime caches elsewhere. Persist changes via `AssetDatabase.global.SaveSettings`.
+- Long-lived data: store simulation caches, analytics, and save-independent data in `ModsData/<Module>`. Treat the folder like a cache; ship reset buttons to purge safely.
+- Session data: anything disposable goes under `ModsDataTemp/<Module>`. Clear it on unload to avoid cruft.
+- Configuration schema: document JSON/YAML formats under `docs/modules/` when you release data packs so automation can validate them.
 
-To keep cross-module language consistent, backlog stories should link here when introducing the following concepts:
+## Localization and Logging
+- Register per-locale dictionary sources (`IDictionarySource`). Use your `Setting` instance to derive option keys and keep naming consistent.
+- Add at least an English fallback before other locales. When I18n Everywhere is present, let it override keys via JSON to reduce churn.
+- Keep a single static logger per module. Disable UI error popups by default and expose debug toggles in settings.
+- Log the executable asset path and dependency versions during load. These breadcrumbs are invaluable during support.
 
-- **Identity Triangle:** `(loyalty, fear, opportunity)` scalar values in the range `0.0 – 1.0`, defaults `0.5`. Serialized in `vno_economy.identity` payloads.
-- **Ideology Vector:** `(reformist, developer, lawAndOrder, unionist, populist, viceAligned)` array of floats `0.0 – 1.0`, normalized to sum ≤ 1.0.
-- **Influence Metrics:** Accumulated action points per faction, stored as `float current`, `float decayRate`, `float maxCapacity`.
-- **Heat Index:** Normalized scalar `0.0 – 100.0`, updated per laundering cycle; thresholds at `25`, `50`, `75` trigger escalation tiers.
-- **Legitimacy & Trust:** Values `0.0 – 100.0` persisted in `vno_order.legitimacy` / `vno_governance.trust`.
+## System Scheduling and Replacement
+- Disable vanilla systems before registering replacements to avoid double execution. If you may re-enable them later, keep a reference.
+- Use `UpdateAt` with explicit phases (`GameSimulation`, `UIUpdate`, `EditorSimulation`, `Deserialize`, `PrefabUpdate`). Deterministic ordering is critical when multiple VNO modules share the same world.
+- When chaining systems, prefer `updateSystem.UpdateAfter<TDependency, TSystem>()` so reorderings remain explicit.
+- For multi-phase systems, guard inside `OnUpdate`:
+  ```csharp
+  protected override void OnUpdate()
+  {
+      if (WorldUnmanaged.Time.DeltaTime == 0f) return; // during deserialize
+      if (!Application.isPlaying && !RunInEditor) return;
+      // Simulation logic here
+  }
+  ```
+- Use `ComponentLookup` and `SystemHandle` fields to cache queries. Initialise them in `OnCreate` and refresh with `Update(ref state)` patterns to avoid repeated lookups.
 
-Add new terms here when they first appear in design discussions to avoid ambiguity in future stories.
+## Dependency Strategy
+- Treat ExtraLib, Unified Icon Library, I18n Everywhere, and Write Everywhere as required runtime dependencies for modules that rely on them.
+- Check assemblies at runtime and set feature flags (`HasExtraLib`, `HasI18n`) so systems can downgrade gracefully.
+- House shared wrappers (icon hosts, prefab loaders, notification helpers) in ExtraLib or another dedicated dependency to avoid copy/paste between modules.
+- When interacting with third-party mods (for example Time2Work), expose interop helpers that wrap their public API and guard against missing assemblies.
 
-## Event & API Reference Stubs
+## Performance and Telemetry Targets
+- Reference hardware: Intel i7-11700K class CPU, RTX 3070 GPU, 32 GB RAM, 1440p, medium graphics preset.
+- Frame budgets: aim for simulation systems under 5 ms per frame, UI systems under 2 ms, and background analytics under 1 ms. Reference this section when writing acceptance criteria.
+- Benchmarks: keep deterministic save files for high-crime districts, budget stress tests, and vice escalation scenarios. Run profiling on these saves before shipping features.
+- Instrumentation: drop `ProfilerMarker` scopes around heavy jobs and expose developer commands to dump component summaries in profiling builds.
 
-Stories that introduce or require specific contracts should link to this table as definitions evolve:
+## Shared Terminology
+Use these canonical definitions across design docs, stories, and telemetry payloads:
+- Identity triangle: tuple `(loyalty, fear, opportunity)` in range `0.0 - 1.0`, default `0.5`. Serialised under `vno_economy.identity`.
+- Ideology vector: six-element array `(reformist, developer, lawAndOrder, unionist, populist, viceAligned)`, normalised to sum to `1.0`.
+- Influence metric: structure with `current`, `decayRate`, `maxCapacity`, floats between `0.0` and `100.0`.
+- Heat index: scalar `0.0 - 100.0`, escalates tiers at `25`, `50`, and `75`.
+- Legitimacy / Trust: civic sentiment scores `0.0 - 100.0`, stored in `vno_order.legitimacy` and `vno_governance.trust`.
+Add new terms here as soon as they appear in the backlog to keep future stories unambiguous.
+
+## Draft Event and API Contracts
+Promote entries from this table into `docs/API_REFERENCE.md` once the implementation stabilises.
 
 | Contract | Summary | Status |
 | --- | --- | --- |
 | `HeatChangedEvent` | `{ factionId: Guid, previous: float, current: float, delta: float, timestamp: long }` | Draft |
 | `GangEvent` | `{ type: enum, territoryId: Guid, actors: Guid[], loyaltyDelta: float, liquidityDelta: float }` | Draft |
-| `IFinanceService` | Methods: `GetBalances(factionId)`, `InitiateLaunder(job)`, `SetAutoPolicy(policyId, enabled)` | Draft |
-| `IVoteService` | Methods: `ScheduleSession(config)`, `GetForecast(sessionId)`, `SubmitInfluence(action)` | Draft |
-| `IHealthService` | Methods: `GetStress(districtId)`, `RegisterProgram(programConfig)`, `ReportOutcome(outcome)` | Draft |
+| `IFinanceService` | `GetBalances(factionId)`, `InitiateLaunder(job)`, `SetAutoPolicy(policyId, enabled)` | Draft |
+| `IVoteService` | `ScheduleSession(config)`, `GetForecast(sessionId)`, `SubmitInfluence(action)` | Draft |
+| `IHealthService` | `GetStress(districtId)`, `RegisterProgram(programConfig)`, `ReportOutcome(outcome)` | Draft |
 
-As implementation matures, promote draft entries into `docs/API_REFERENCE.md` and update references accordingly.
+Keep this document close while planning new features; it captures the architectural guardrails that let our micro-mods interoperate without surprises.

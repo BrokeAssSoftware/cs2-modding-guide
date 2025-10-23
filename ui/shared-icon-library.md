@@ -11,7 +11,7 @@ Unified Icon Library (UIL) provides a curated catalogue of SVG assets that match
 - Use the style set (`Standard`, `Dark`, `Colored`) that matches your UI palette; rely on CSS variables for tinting.
 - Only ship custom icons when UIL cannot cover the use case; register them under your own COUI host to prevent collisions.
 
-## Wiring The Dependency
+## Wiring the Dependency
 
 ### Declare UIL Everywhere
 - **Publish configuration**
@@ -29,7 +29,7 @@ Unified Icon Library (UIL) provides a curated catalogue of SVG assets that match
   }
   ```
   Verify the dependency ID against the current UIL release (case-sensitive).
-- **Documentation** â€" mark UIL as "Required" in module READMEs and release notes so players understand the dependency chain.
+- **Documentation** - mark UIL as "Required" in module READMEs and release notes so players understand the dependency chain.
 
 ### Runtime Guard
 Metadata alone does not guarantee UIL loads before our code. Add a quick check:
@@ -100,16 +100,16 @@ internal static class IconRefs
 
 Use constants when pushing icon URIs through ECS notifications or DTOs so both the native and UI layers stay in sync.
 
-## Recoloring & Theme Alignment
-- **Tint coloured sets** â€" UIL exposes CSS custom properties (`--uil-red`, `--uil-blue`, etc.). Override them for contextual colouring:
+## Recoloring and Theme Alignment
+- **Tint coloured sets** - UIL exposes CSS custom properties (`--uil-red`, `--uil-blue`, etc.). Override them for contextual colouring:
   ```css
   .warning-icon { color: var(--uil-red); }
   ```
-- **Single-tone icons** â€" apply CSS `filter` or `fill` overrides to `Standard`/`Dark` icons. Keep colours within the tone palette defined in `docs/vision/index.md`.
-- **Accessibility** â€" maintain a minimum 4.5:1 contrast ratio. UIL defaults meet this threshold; re-validate when you apply custom tints.
+- **Single-tone icons** - apply CSS `filter` or `fill` overrides to `Standard`/`Dark` icons. Keep colours within the tone palette defined in `docs/vision/index.md`.
+- **Accessibility** - maintain a minimum 4.5:1 contrast ratio. UIL defaults meet this threshold; re-validate when you apply custom tints.
 
 ## Discovering Icons
-- Browse the repository previews (<https://github.com/algernon-A/UnifiedIconLibrary/tree/master/Properties/Previews>).
+- Browse the repository previews (https://github.com/algernon-A/UnifiedIconLibrary/tree/master/Properties/Previews).
 - Programmatically list icons to drive validation scripts:
   ```powershell
   Invoke-RestMethod `
@@ -170,21 +170,19 @@ Only add bespoke SVGs when UIL lacks a suitable asset.
      </Content>
    </ItemGroup>
    ```
-5. **Promote shared art** â€" if multiple modules rely on the same custom icon, migrate it to a shared dependency (e.g., ExtraLib) instead of duplicating files.
+5. **Promote shared art** - if multiple modules rely on the same custom icon, migrate it to a shared dependency (for example ExtraLib) instead of duplicating files.
 
-## QA & Troubleshooting
-- **Broken icon** â€" double-check the URI, style, and dependency presence. Temporarily enable `SetShowsErrorsInUI(true)` to surface missing asset warnings in-game.
-- **Dependency warning in UI** â€" ensure `PublishConfiguration.xml` and Paradox Mods metadata list UIL. The launcher only auto-installs declared dependencies.
-- **Colour mismatch** â€" confirm you are overriding a valid token (`--uil-red`, `--uil-grey`, etc.). Typos silently revert to defaults.
-- **COUI host conflicts** â€" use a unique host key (`vno-icons`) when registering custom bundles to avoid clashing with other mods.
-- **Large SVGs** â€" keep icons under ~50 KB. Run `svgo` or similar optimisers in CI to strip metadata and shrink paths.
+## QA and Troubleshooting
+- **Broken icon** - double-check the URI, style, and dependency presence. Temporarily enable `SetShowsErrorsInUI(true)` to surface missing asset warnings in-game.
+- **Dependency warning in UI** - ensure `PublishConfiguration.xml` and Paradox Mods metadata list UIL. The launcher only auto-installs declared dependencies.
+- **Colour mismatch** - confirm you are overriding a valid token (`--uil-red`, `--uil-grey`, etc.). Typos silently revert to defaults.
+- **COUI host conflicts** - use a unique host key (`vno-icons`) when registering custom bundles to avoid clashing with other mods.
+- **Large SVGs** - keep icons under roughly 50 KB. Run `svgo` or similar optimisers in CI to strip metadata and shrink paths.
 
 ## References
-- Unified Icon Library repo: <https://github.com/algernon-A/UnifiedIconLibrary>
+- Unified Icon Library repo: https://github.com/algernon-A/UnifiedIconLibrary
 - ExtraLib icon helpers: `docs/cs2-modding-guide/dependencies/shared-library-extra.md`
-- Gameface & React pipeline: `docs/cs2-modding-guide/ui-react-pipeline.md`
-- Tone & accessibility guidance: `docs/vision/index.md`
+- Gameface and React pipeline: `docs/cs2-modding-guide/ui-react-pipeline.md`
+- Tone and accessibility guidance: `docs/vision/index.md`
 
 Following these steps ensures both humans and automation can source icons quickly, maintain visual cohesion, and extend the library safely when our scenarios demand new art.
-
-

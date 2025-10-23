@@ -1,42 +1,138 @@
-# UI And Options
+# UI and Options
 
-Combine the automatic Options UI system with localized strings and input bindings to keep Vice & Order modules discoverable.
+Vice & Order exposes most configuration through the built-in Options UI plus custom panels backed by Gameface React. This guide walks through building a complete settings pipeline, handling localization, wiring key bindings, and synchronising UI changes with simulation systems.
 
-## Options UI Essentials
+## Build a Settings Class Step by Step
+1. **Derive from `ModSetting`**
+   ```csharp
+   [FileLocation("ModsSettings\\VNO.Core\\VNO.Core")]
+   [SettingsUIGroupOrder(GeneralGroup, DebugGroup)]
+   [SettingsUIShowGroupName(GeneralGroup)]
+   public sealed class Setting : ModSetting
+   {
+       public const string GeneralGroup = "General";
+       public const string DebugGroup = "Debug";
 
-- Derive settings from `ModSetting` and use `[SettingsUISlider]` for numeric ranges, `[SettingsUICheckbox]` or `[SettingsUIToggle]` for booleans, `[SettingsUIEnum]` for enums (hide obsolete entries with `[SettingsUIHidden]`), and `[SettingsUIButton]` plus `[SettingsUIConfirmation]` for actions.
-- Group related properties with `[SettingsUISection("SectionName", "Group")]`, and keep the menu predictable by defining `[SettingsUIGroupOrder]`.
-- Display group titles explicitly with `[SettingsUIShowGroupName]` when multiple groups share a section (pattern from `RealisticPathFinding`).
+       public Setting(IMod mod) : base(mod) { }
+   }
+   ```
+2. **Define properties**
+   ```csharp
+   [SettingsUISlider(0.1f, 5.0f, 0.1f, Unit.kFloatSingleFraction)]
+   [SettingsUISection("Simulation", GeneralGroup)]
+   public float HeatMultiplier { get; set; } = 1.0f;
 
-## Localization Pipeline
+   [SettingsUICheckbox]
+   [SettingsUISection("Simulation", GeneralGroup)]
+   public bool EnableViceLoop { get; set; } = true;
 
-- Create locale classes that implement `IDictionarySource` and populate label/description IDs with `GetOptionLabelLocaleID` and `GetOptionDescLocaleID`.
-- Register locales for every supported language before calling `RegisterInOptionsUI()`.
-- Listen to `localizationManager.onActiveDictionaryChanged` when options must rebuild after a language change (`AchievementFixer` pattern).
-- Keep translations ASCII-friendly; place multi-line copy in dictionary sources rather than inline attributes.
+   [SettingsUIButton]
+   [SettingsUISection("Developer", DebugGroup)]
+   [SettingsUIConfirmation("Options.CONFIRM[VNO.Core.Reset]")]
+   public bool ResetDefaults
+   {
+       set
+       {
+           SetDefaults();
+           AssetDatabase.global.SaveSettings(Mod, this);
+       }
+   }
+   ```
+3. **Load and register in `Mod.OnLoad`**
+   ```csharp
+   _setting = new Setting(this);
+   AssetDatabase.global.LoadSettings(Id, _setting, new Setting(this));
+   _setting.RegisterInOptionsUI();
+   ```
 
-## Key Bindings
+## Localize Labels and Tooltips
+1. Create a locale provider per language:
+   ```csharp
+   public sealed class LocaleEN : IDictionarySource
+   {
+       private readonly Setting _setting;
+       public LocaleEN(Setting setting) => _setting = setting;
+       public string name => "VNO Core Locale EN";
 
-- Decorate properties with `[ProxyBinding]` and pair keyboard/gamepad metadata via `[SettingsUIKeyboardAction]` and `[SettingsUIGamepadAction]` (see [Mod Key Binding](https://cs2.paradoxwikis.com/Mod_Key_Binding)).
-- Assign unique action IDs and usage strings to prevent conflicts and expose user-friendly names.
-- Provide localized captions through `GetBindingMapLocaleID` and `GetBindingKeyLocaleID`.
-- Handle binding conflicts by listening to `InputManager.instance` callbacks, surfacing warnings, and exposing reset actions.
+       public IEnumerable<KeyValuePair<string, string>> Pairs
+       {
+           get
+           {
+               yield return Map(_setting.GetOptionLabelLocaleID(nameof(Setting.HeatMultiplier)), "Heat multiplier");
+               yield return Map(_setting.GetOptionDescLocaleID(nameof(Setting.HeatMultiplier)), "Scales heat gain per simulation tick.");
+           }
+       }
 
-## Options UX Guidance
+       private static KeyValuePair<string, string> Map(string key, string value) =>
+           new KeyValuePair<string, string>(key, value);
+   }
+   ```
+2. Register before calling `RegisterInOptionsUI`:
+   ```csharp
+   LocalizationManager.AddSource("en-US", new LocaleEN(_setting));
+   LocalizationManager.AddSource("fr-FR", new LocaleFR(_setting));
+   ```
+3. Listen for dictionary changes when UI state must refresh immediately:
+   ```csharp
+   GameManager.instance.localizationManager.onActiveDictionaryChanged += OnLocaleChanged;
+   ```
+   Rebuild cached UI labels when this event fires.
 
-- Mirror the `RealisticPathFinding` approach for dense sliders by clustering under logical sections such as Vehicles, Pedestrians, or Taxi and provide concise tooltips explaining outcomes.
-- Keep defaults clear; expose reset buttons with `[SettingsUIButton]` and confirm destructive actions.
-- When options affect system activation, toggle systems by setting `Enabled` flags or updating module configuration at runtime so players see changes immediately.
+## Synchronise Settings with Systems
+- Inject your `Setting` instance into simulation systems through singletons or constructor parameters.
+- Use `ComponentLookup` or shared singletons to propagate runtime values. Example:
+  ```csharp
+  protected override void OnUpdate()
+  {
+      if (!_settings.EnableViceLoop) return;
+      var multiplier = _settings.HeatMultiplier;
+      // Apply multiplier in simulation logic
+  }
+  ```
+- For expensive changes (e.g., toggling entire systems) register callbacks on the setting so you can enable/disable systems dynamically without restarting.
 
-## Runtime Panels
+## Key Binding Pipeline
+1. Decorate the setting property:
+   ```csharp
+   [ProxyBinding("VNO.Core.ToggleVicePanel")]
+   [SettingsUIKeyboardAction("Toggle Vice Panel", DefaultKey = KeyCode.V)]
+   [SettingsUIGamepadAction("Toggle Vice Panel", DefaultButton = GamepadButton.DPadUp)]
+   public Binding ToggleVicePanel { get; set; }
+   ```
+2. Provide localized captions:
+   ```csharp
+   _setting.GetBindingMapLocaleID(nameof(Setting.ToggleVicePanel)) => "Bindings.MAP[VNO.Core]";
+   _setting.GetBindingKeyLocaleID(nameof(Setting.ToggleVicePanel)) => "Bindings.KEY[VNO.Core.ToggleVicePanel]";
+   ```
+3. Resolve conflicts by watching `InputManager.instance.onBindingConflict` and surfacing a toast or inline warning when the player selects a conflicting key.
+4. Implement an action handler in a UI or simulation system:
+   ```csharp
+   InputManager.instance.AddBindingHandler(
+       "VNO.Core.ToggleVicePanel",
+       _ => ToggleViceDashboard());
+   ```
 
-- Use `[SettingsUIDirPicker]` for filesystem selectors when storing exports or logs.
-- Expose read-only summaries with `[SettingsUIMultilineText]` for quick player feedback.
-- For dynamic UI beyond the options menu, route data through shared services or serialized singletons and update via ECS UI systems.
+## Options UX Guidelines
+- Group sliders, toggles, and actions by functional area (e.g., Simulation, Analytics, Debug) and keep sections short.
+- Show current values in the section header when small adjustments are expected (for example `Heat multiplier: 1.25x`).
+- Always provide a Reset button for complex sections and confirm destructive actions with `[SettingsUIConfirmation]`.
+- When options affect live systems, apply changes immediately and display a short success message so players know the update landed.
 
-## Shared UI & Localization Dependencies
+## Runtime UI Beyond Options
+- **Read-only summaries** – use `[SettingsUIMultilineText]` to display analytics or current system status inside the options view.
+- **Dynamic panels** – for custom dashboards, build Gameface React components that subscribe to ECS buffers or query services via message channels (see `ui-react-pipeline.md`).
+- **File pickers** – `[SettingsUIDirPicker]` and `[SettingsUIFilePicker]` are ideal for export locations or importing data packs; validate paths before saving.
 
-- Adopt shared icon libraries (e.g., Unified Icon Library) to reference UI assets via `coui://uil/<Style>/<Icon>.svg` without duplicating SVGs; styles include standard, dark, and colored themes.
-- Integrate localization helper mods such as I18n Everywhere to load JSON locale files from a `lang/` folder, contribute to centralized packs, or ship an `i18n.json` descriptor alongside your module.
-- When depending on external libraries (ExtraLib, icon packs), document the requirement in `mod.json` and in-game options so players enable prerequisites before launching.
-- Provide graceful fallbacks (default icons, English strings) when the dependency is missing, and surface warnings through the options UI.
+## Handling Dependency Failures Gracefully
+- Detect missing ExtraLib, UIL, or I18n Everywhere instances during `OnLoad` and set boolean flags in your settings class.
+- Disable UI sections that require absent dependencies and display a short explanation inside the options menu rather than throwing.
+- Provide a button that opens the dependency mod page or documentation so players can install the missing requirement easily.
+
+## Testing Checklist
+1. Build in Debug configuration and open the Options menu with translation sets (English plus at least one non-Latin locale) to ensure labels resolve.
+2. Change each setting and confirm persistence after restarting the game.
+3. Rebind every key and validate that conflicts raise visible warnings.
+4. Run with dependencies removed to confirm fallbacks behave correctly.
+5. Trigger developer mode and confirm debug-only sections stay hidden in release builds.
+
+Following this workflow ensures every Vice & Order module ships with predictable configuration, clear localization, and responsive UI panels that integrate cleanly with the underlying simulation.
