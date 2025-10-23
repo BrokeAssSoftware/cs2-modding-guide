@@ -10,6 +10,15 @@ Prime every workstation with the official Cities: Skylines II toolchain before t
      --developerMode --uiDeveloperMode
      ```  
   3. Launch the game from Steam. The developer menu (`Tab`) and object browser (`Home`) confirm the flag is active; `http://localhost:9444/` should open the Gameface inspector.
+- **Xbox app / PC Game Pass**  
+  1. In the Xbox app, open *Cities: Skylines II* → *Manage* → *Files* → *Browse*. This opens the install folder (typically `C:\XboxGames\Cities Skylines II\Content\`).  
+  2. Right-click `Cities2.exe` → *Create shortcut*. Windows places the shortcut on the desktop.  
+  3. Edit the shortcut target to include the launch parameters, for example:  
+     ```
+     "C:\XboxGames\Cities Skylines II\Content\Cities2.exe" --developerMode --uiDeveloperMode
+     ```  
+     If your install path differs, copy the path from the shortcut’s *Start in* field.  
+  4. Launch the game using that shortcut to ensure the flags are honoured (look for the developer menu and UI debugger as above).
 - **Direct executable / desktop shortcut**  
   1. Browse to `...\Steam\steamapps\common\Cities Skylines II\`.  
   2. Right-click `Cities2.exe` → *Create shortcut*.  
