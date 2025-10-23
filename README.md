@@ -47,7 +47,11 @@ Welcome to the working playbook for building and maintaining the Vice & Order mo
 - [I18n Everywhere Integration](localization/i18n-integration.md)
 
 ## Content and Assets
-- [Content Overview](content/overview.md)
+- [Overview](content/overview.md)
+- [PBR Asset Workflow](content/pbr-workflow.md)
+- [Editor Integration](content/editor-integration.md)
+- [Map and Scenario Authoring](content/map-authoring.md)
+- [Support and Publishing](content/support-and-publishing.md)
 - [Unofficial Asset Import](content/unofficial-asset-import.md)
 - [Write Everywhere Modules](content/write-everywhere-modules.md)
 - [Asset Pack Management](content/asset-pack-management.md)
@@ -99,4 +103,5 @@ Welcome to the working playbook for building and maintaining the Vice & Order mo
 - Reference mod IDs when documenting dependencies so automation can enforce publish requirements.
 
 Use this directory as the authoritative source for CS2-related workflows inside Vice & Order. Contributions should prioritise actionable steps, code examples, and references to upstream documentation.
+
 

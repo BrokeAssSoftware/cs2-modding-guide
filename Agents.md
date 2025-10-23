@@ -7,12 +7,11 @@ Use this file as the entry point for LLM agents, automation scripts, and new con
 - **Audience:** Engineers, technical writers, tooling automatisms, and onboarding assistants.
 - **Structure:** The directory is organised by theme (setup, architecture, simulation, UI, tooling, content, dependencies, operations).
 
-## High-Priority Reads
-1. [Setup Overview](setup/overview.md) - launch flags, toolchain installation, project bootstrap, and publishing routines.
+## High-Priority Reads\n1. [Setup Overview](setup/overview.md) - launch flags, toolchain installation, project bootstrap, and publishing routines.
 2. [Architecture Overview](architecture/overview.md) - module lifecycle, dependency checks, shared terminology.
 3. [Simulation Overview](simulation/overview.md) - DOTS replacement patterns, templates, diagnostics, and testing.
 4. [UI Overview](ui/overview.md) plus [React Pipeline](ui/react-pipeline/overview.md) - Options UI, key bindings, runtime panels, and Gameface workflows.
-5. [Operations Overview](operations/overview.md) - logging, debugging, release checklist, automation ideas, and incident response.
+5. [Operations Overview](operations/overview.md) - logging, debugging, release checklist, automation ideas, and incident response.\n6. [Content Overview](content/overview.md) - PBR workflow, editor integration, map authoring, and publishing support.
 
 ## Cross-References
 - External wiki links and research snapshots live in `docs/research/wiki/` and `docs/research/mods/`.
@@ -30,3 +29,4 @@ Use this file as the entry point for LLM agents, automation scripts, and new con
 - When docs conflict, defer to the most recently updated file (tracked via git) and flag inconsistencies for follow-up.
 
 Keep this briefing current so agents and teammates can navigate the guide without context-switching.
+
