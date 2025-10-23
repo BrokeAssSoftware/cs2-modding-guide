@@ -4,10 +4,18 @@ Welcome to the working playbook for building and maintaining the Vice & Order mo
 
 ## Start Here
 - [Agents](Agents.md) - orientation file for automation assistants and newcomers.
-- [Setup and Toolchain](setup-and-toolchain.md) - workstation prep, launch parameters, code/UI build integration, publishing workflow.
+- [Setup Overview](setup/overview.md) - links to launch profiles, toolchain installation, project bootstrap, and publishing routines.
 - [Project Architecture](project-architecture.md) - module lifecycle, dependency checks, shared terminology and API contracts.
 - [Simulation Systems](simulation-systems.md) - DOTS system replacement patterns, multi-phase scheduling, testing checklist.
 - [Quality and Operations](quality-and-operations.md) - logging, debugging, memory hygiene, release checklist, automation ideas.
+
+## Setup
+- [Launch Profiles and Developer Flags](setup/launch-profiles.md) - configure Steam, Xbox / PC Game Pass, and desktop shortcuts.
+- [Toolchain Installation](setup/toolchain-installation.md) - install Unity, the modding project template, .NET, and Node.
+- [Bootstrap a Code Mod](setup/code-mod-bootstrap.md) - generate the base C# project and add it to the repository.
+- [Bootstrap a UI Project](setup/ui-project-bootstrap.md) - scaffold the Gameface React bundle and align IDs.
+- [Build and Publish Workflow](setup/build-and-publish.md) - wire MSBuild, run daily build loops, and publish releases.
+- [Environment Health Checks](setup/environment-health-checks.md) - verify folders, certificates, and regression saves.
 
 ## UI and Interaction
 - [UI and Options](ui-and-options.md) - Options UI patterns, localization workflow, key bindings, runtime UI guidance.

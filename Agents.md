@@ -8,7 +8,7 @@ Use this file as the entry point for LLM agents, automation scripts, and new con
 - **Structure:** The directory is organised by theme (setup, architecture, systems, UI, tooling, content, dependencies).
 
 ## High-Priority Reads
-1. [Setup and Toolchain](setup-and-toolchain.md) - workstations, launch flags, build/publish loop.
+1. [Setup Overview](setup/overview.md) - launch flags, toolchain installation, project bootstrap, and publishing routines.
 2. [Project Architecture](project-architecture.md) - module lifecycle, dependency checks, shared terminology.
 3. [Simulation Systems](simulation-systems.md) - DOTS patterns, replacement workflow, testing checklist.
 4. [UI and Options](ui-and-options.md) plus [UI React Pipeline](ui-react-pipeline.md) - UI patterns, settings, and Gameface integration.
