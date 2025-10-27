@@ -7,3 +7,5 @@
 5. Enable `-developerMode` to verify debug-only sections remain hidden in release builds.
 6. Walk the Vice & Order console entry and modal with a controller: confirm focus order returns to the options list after closing and the launch CTA advertises focus state.
 7. Turn on the screen reader bridge and ensure menu labels/ARIA titles for the Vice & Order options row, modal close button, and hero action announce meaningful text.
+8. From the hero CTA, enter the console shell and sweep the navigation rail with gamepad/keyboard to verify sequential focus, wrap-around behaviour, and that `Back to briefing` restores hero focus.
+9. Run screen reader pass on the console shell to ensure section headers, nav badges, card CTAs, and download/upgrade states announce actionable descriptions.
