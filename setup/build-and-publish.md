@@ -45,7 +45,7 @@ Add build targets to the code mod project so `dotnet build` also bundles the UI 
 ## Publishing
 1. Build in Release mode (`dotnet build -c Release`) to strip debug symbols. Run `npm run build` if you maintain UI bundles separately.
 2. Launch the game, sign into your Paradox account, and execute `PublishNewMod`, `PublishNewVersion`, or `UpdatePublishedConfiguration` from Rider or Visual Studio.
-3. Confirm `PublishConfiguration.xml` lists every hard dependency (ExtraLib, Unified Icon Library, I18n Everywhere, etc.) and that the version matches the release notes.
+3. Confirm `PublishConfiguration.xml` lists every hard dependency (Unified Icon Library, I18n Everywhere, etc.) and that the version matches the release notes.
 4. Keep signed `PublishConfiguration.xml` files in the repository but never commit authentication tokens; the toolchain authenticates via the current game session.
 
 ## VS Code Build and Attach Tasks

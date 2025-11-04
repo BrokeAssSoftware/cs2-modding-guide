@@ -8,5 +8,5 @@
   1. Run unit or integration tests (`dotnet test`) if available.
   2. Load regression saves and watch CPU time and logs.
   3. Toggle the mod off/on to confirm systems unpatch cleanly.
-  4. Launch without shared dependencies (ExtraLib, I18n Everywhere) and confirm graceful degradation.
+  4. Launch without shared dependencies (I18n Everywhere, UIL) and confirm graceful degradation.
   5. Open the map editor to ensure editor-only contexts do not execute runtime logic.

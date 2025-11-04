@@ -36,7 +36,7 @@ Authoritative and community references that inform the Vice & Order modding stac
 - [WE Module Template](https://github.com/klyte45/CS2-WEModuleTemplate) - starter project for distributing Write Everywhere atlases, layouts, and fonts.
 - [Asset Packs Manager](https://github.com/CitiesSkylinesModding/CS2-AssetPacksManager) - playset aware asset catalog with reports and localization helpers.
 
-_Dependency stance_: Vice & Order ships with ExtraLib, Unified Icon Library, I18n Everywhere, and builds overlays on top of Write Everywhere. Tooling techniques from Anarchy/Better Bulldozer/ExtraDetailingTools inform our internal implementations rather than direct dependencies.
+_Dependency stance_: Vice & Order ships with Unified Icon Library and I18n Everywhere, and builds overlays on top of Write Everywhere. ExtraLib remains an optional integration. Tooling techniques from Anarchy/Better Bulldozer/ExtraDetailingTools inform our internal implementations rather than direct dependencies.
 
 ## Local Snapshots
 

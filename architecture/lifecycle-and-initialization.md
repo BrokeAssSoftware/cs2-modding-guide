@@ -1,4 +1,4 @@
-﻿# Lifecycle and Initialization
+# Lifecycle and Initialization
 
 Follow these steps inside every `Mod` implementation to ensure modules load consistently and cleanly.
 
@@ -6,7 +6,7 @@ Follow these steps inside every `Mod` implementation to ensure modules load cons
 1. **Create module folders** - call `Directory.CreateDirectory` for `ModsSettings/<Module>` and `ModsData/<Module>` to avoid first-run IO errors.
 2. **Load settings** - instantiate the `Setting` class, call `AssetDatabase.global.LoadSettings`, and register the Options UI immediately.
 3. **Register localisation** - add dictionary sources before the Options UI renders so labels resolve on first paint.
-4. **Detect dependencies** - check for ExtraLib, Unified Icon Library, I18n Everywhere, and other shared libraries; set fallback flags and warnings when they are missing.
+4. **Detect dependencies** - check for Unified Icon Library, I18n Everywhere, and other shared libraries; set fallback flags and warnings when they are missing.
 5. **Disable vanilla systems** - fetch the Unity world and set `Enabled = false` on systems you will replace.
 6. **Schedule custom systems** - register your DOTS systems with explicit `SystemUpdatePhase` configuration.
 7. **Apply Harmony patches** - patch last, log the patched methods, and store the Harmony instance so you can unpatch in `OnDispose`.
@@ -34,10 +34,16 @@ public sealed class Mod : IMod
 
         RegisterLocales(_setting);
 
-        if (!IsAssemblyLoaded("ExtraLib"))
+        if (!IsAssemblyLoaded("UnifiedIconLibrary"))
         {
-            Log.Warn("ExtraLib missing. Advanced UI features will be disabled.");
-            _setting.HasExtraLib = false;
+            Log.Warn("Unified Icon Library missing. UI surfaces will fall back to text labels.");
+            _setting.HasUnifiedIconLibrary = false;
+        }
+
+        if (!IsAssemblyLoaded("I18NEverywhere"))
+        {
+            Log.Warn("I18n Everywhere missing. Localisation will default to embedded English strings.");
+            _setting.HasI18nEverywhere = false;
         }
 
         var world = World.DefaultGameObjectInjectionWorld;

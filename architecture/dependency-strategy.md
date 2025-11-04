@@ -1,6 +1,6 @@
-# Dependency Strategy
+﻿# Dependency Strategy
 
-Vice & Order relies on shared libraries such as ExtraLib, Unified Icon Library, I18n Everywhere, and Write Everywhere. Coordinate these dependencies so modules degrade gracefully when they are missing and our tooling can reason about the stack.
+Vice & Order relies on shared libraries such as Unified Icon Library, I18n Everywhere, and Write Everywhere. Coordinate these dependencies so modules degrade gracefully when they are missing and our tooling can reason about the stack. ExtraLib is no longer a baseline requirement but the same patterns below apply if a module opts into it (see `dependencies/shared-library-extra.md`).
 
 ## Standard Dependency Workflow
 1. **Declare** the dependency in publishing metadata (`PublishConfiguration.xml`, `mod.json`, documentation).
@@ -13,26 +13,26 @@ Treat this workflow as the checklist every time a new shared library is introduc
 
 ## Declaring Dependencies
 
-- **Publish configuration** – declare every required mod so the in-game publisher installs prerequisites automatically:
+- **Publish configuration** â€“ declare every required mod so the in-game publisher installs prerequisites automatically:
   ```xml
   <Publish>
     <!-- other metadata -->
-    <Dependency Id="75724" DisplayName="ExtraLib" />
     <Dependency Id="74417" DisplayName="Unified Icon Library" />
+    <Dependency Id="75426" DisplayName="I18n Everywhere" />
   </Publish>
   ```
-- **UI module `mod.json`** – reflect the same dependency list for Gameface packages:
+- **UI module `mod.json`** â€“ reflect the same dependency list for Gameface packages:
   ```json
   {
     "id": "VNO.UI",
     "dependencies": [
-      "algernon.ExtraLib",
-      "algernon.UnifiedIconLibrary"
+      "algernon.UnifiedIconLibrary",
+      "baka.I18NEverywhere"
     ]
   }
   ```
-- **Release notes / READMEs** – mark each dependency as "Required" with a link to the Paradox Mods page to reduce support churn.
-- **MSBuild references** – point project files at the shared DLL location with `<Private>false</Private>` so the dependency is resolved at compile time but not duplicated in the output. See `docs/cs2-modding-guide/dependencies/shared-library-extra.md` for the canonical `Directory.Build.props` fragment.
+- **Release notes / READMEs** â€“ mark each dependency as "Required" with a link to the Paradox Mods page to reduce support churn.
+- **MSBuild references** - point project files at the shared DLL location with `<Private>false</Private>` so the dependency is resolved at compile time but not duplicated in the output. If you add optional libraries (for example ExtraLib), mirror the guidance in `docs/cs2-modding-guide/dependencies/shared-library-extra.md`.
 
 Keep declarations synchronized across every file when adding or removing a dependency.
 
@@ -59,20 +59,20 @@ public sealed class Mod : IMod
     {
         _dependencies.Refresh();
 
-        if (!_dependencies.HasExtraLib)
-        {
-            Log.Warn("ExtraLib missing. Advanced UI features will be disabled.");
-        }
-
         if (!_dependencies.HasUnifiedIconLibrary)
         {
             Log.Warn("Unified Icon Library missing. Falling back to text labels.");
         }
 
-        // Gate feature registration on dependency availability.
-        if (_dependencies.HasExtraLib)
+        if (!_dependencies.HasI18nEverywhere)
         {
-            ExtraLibBootstrap.Register();
+            Log.Warn("I18n Everywhere missing. Localisation will default to embedded English strings.");
+        }
+
+        // Gate feature registration on dependency availability.
+        if (_dependencies.HasUnifiedIconLibrary)
+        {
+            UilBootstrap.Register();
         }
         else
         {
@@ -83,15 +83,13 @@ public sealed class Mod : IMod
 
 internal sealed class DependencyStatus
 {
-    public bool HasExtraLib { get; private set; }
     public bool HasUnifiedIconLibrary { get; private set; }
     public bool HasI18nEverywhere { get; private set; }
 
     public void Refresh()
     {
-        HasExtraLib = IsAssemblyLoaded("ExtraLib");
         HasUnifiedIconLibrary = IsAssemblyLoaded("UnifiedIconLibrary");
-        HasI18nEverywhere = IsAssemblyLoaded("I18nEverywhere");
+        HasI18nEverywhere = IsAssemblyLoaded("I18NEverywhere");
     }
 
     private static bool IsAssemblyLoaded(string assemblyName) =>
@@ -101,14 +99,14 @@ internal sealed class DependencyStatus
 }
 ```
 
-Use the pattern above as the baseline and extend `DependencyStatus` as new shared modules come online. When multiple modules need the same guard, promote the helper into a shared utility assembly (`vno-core` or ExtraLib) to avoid drift.
+Use the pattern above as the baseline and extend `DependencyStatus` as new shared modules come online. When multiple modules need the same guard, promote the helper into a shared utility assembly (for example `vno-core`) to avoid drift.
 
 ## Downgrading Behaviour
 
-- **Feature flags** – expose `HasExtraLib`, `HasUIL`, and similar booleans on settings classes so UI layers can branch cleanly.
-- **UI fallbacks** – replace icon URIs with plain text labels or neutral assets when UIL is unavailable.
-- **System scheduling** – skip registration of systems that rely on a missing dependency instead of letting them throw inside `OnUpdate`.
-- **Logging** – log one warning per missing dependency during `OnLoad`; avoid spamming the log on every frame.
+- **Feature flags** â€“ expose `HasUIL`, `HasI18n`, and similar booleans on settings classes so UI layers can branch cleanly.
+- **UI fallbacks** â€“ replace icon URIs with plain text labels or neutral assets when UIL is unavailable.
+- **System scheduling** â€“ skip registration of systems that rely on a missing dependency instead of letting them throw inside `OnUpdate`.
+- **Logging** â€“ log one warning per missing dependency during `OnLoad`; avoid spamming the log on every frame.
 
 ## Inter-Mod Hooks
 

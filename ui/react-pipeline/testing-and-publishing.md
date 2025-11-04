@@ -4,7 +4,7 @@
 - Run `npm run lint` and `npm run typecheck` locally or in CI.
 - Build with `npm run build` and open `dist/index.html` for a quick smoke test.
 - Launch the game without `npm run dev` to ensure the production bundle loads correctly.
-- Test in multiple languages and without shared dependencies (UIL, ExtraLib) to confirm fallbacks.
+- Test in multiple languages and without shared dependencies (UIL) to confirm fallbacks.
 - Profile with the Gameface inspector or Chromium dev tools to keep components light.
 
 ## Publishing

@@ -21,7 +21,7 @@ vno-module/
 ```
 
 ## Shared MSBuild Configuration
-- Reference shared dependencies (ExtraLib, UIL, Harmony) via `Directory.Build.props` so every module inherits the same configuration.
+- Reference shared dependencies (UIL, I18n Everywhere, Harmony) via `Directory.Build.props` so every module inherits the same configuration. Add optional libraries (for example ExtraLib) only in modules that require them.
 - Keep Unity references outside project folders; point to the toolchain install path instead of copying DLLs locally.
 
 ## Environment Paths

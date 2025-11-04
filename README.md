@@ -63,8 +63,9 @@ Welcome to the working playbook for building and maintaining the Vice & Order mo
 - [Transform Gizmos](tooling/transform-gizmos.md)
 
 ## Shared Dependencies
-- [Shared Library: ExtraLib](dependencies/shared-library-extra.md)
 - [Shared Icon Library](dependencies/shared-icon-library.md)
+- [I18n Everywhere Integration](localization/i18n-integration.md)
+- [Shared Library: ExtraLib](dependencies/shared-library-extra.md) *(optional)*
 
 ## Development Patterns
 - [Patterns Overview](patterns/overview.md)
