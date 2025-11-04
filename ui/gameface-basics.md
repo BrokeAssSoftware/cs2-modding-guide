@@ -13,12 +13,16 @@ Coherent Gameface (and its Cohtml engine) powers the Cities: Skylines II UI laye
 - Avoid shorthand like `grid-template-columns: repeat(auto-fit, minmax(260px, 1fr))`; Gameface logs a syntax error when it encounters the `1fr` token.
 
 ## Functions and Sizing Helpers
-- `min()` / `max()` / `clamp()` are not parsed reliably. If you need responsive breakpoints, fall back to explicit media queries and percentage widths.
-- `backdrop-filter` is currently ignored. Simulate blur/frosted-glass effects by layering semi-transparent gradients instead of relying on the filter.
+- `min()` / `max()` / `clamp()` are not parsed reliably. Use breakpoint-specific widths and percentages instead of relying on math helpers.
+- `backdrop-filter` is ignored. Layer semi-transparent gradients or texture overlays to simulate blur or frosted glass.
+
+## Unsupported CSS & Selectors
+- Composite layout helpers such as `gap` and `inline-flex` are dropped during parsing. Build spacing with utility classes or `> * + *` patterns, and stick to `display: flex`.
+- Asset helpers like `object-fit`, `background: currentColor`, and logical shorthands (`inset`, `list-style`) do not resolve. Use absolute positioning, explicit edges, or custom pseudo-elements instead.
 
 ## Pseudo Classes
-- Stick to widely supported selectors such as `:hover`, `:focus`, and `:active`.
-- Advanced selectors (`:focus-visible`, `:not()`, `:is()`) are rejected by the parser. Provide accessibility states by toggling classes from code or using `:focus` with custom handling.
+- Stick to widely supported selectors (`:hover`, `:focus`, `:active`) and provide visual focus states manually.
+- Advanced selectors (`:focus-visible`, `:disabled`, `:not()`, `:is()`) are rejected, so toggle helper classes from React instead of leaning on pseudo logic.
 
 ## JavaScript Availability
 - Gameface ships a pared-down JS runtime. Many modern browser APIs exist, but some pieces are missing.
@@ -41,6 +45,14 @@ Coherent Gameface (and its Cohtml engine) powers the Cities: Skylines II UI laye
 - Localisation caveats (missing Intl APIs) — `docs/research/wiki/localize_your_mod.md`
 
 Use this page as the living checklist for Gameface quirks. Update it whenever we discover a new limitation or workaround so future contributors and agents can avoid rediscovering the same issues.
+
+
+
+
+
+
+
+
 
 
 
