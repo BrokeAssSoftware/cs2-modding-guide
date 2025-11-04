@@ -83,7 +83,7 @@ Document any new conventions (icon folder names, embedded resource layout) in th
 ## References
 - ExtraLib repository: <https://github.com/AlphaGaming7780/ExtraLib>
 - Set-up steps for shared libraries: [Architecture Overview](../architecture/overview.md)
-- Icon usage patterns: [Shared Icon Library](../ui/shared-icon-library.md)
+- Icon usage patterns: [Unified Icon Library](unified-icon-library.md)
 
 Follow these practices when introducing or updating shared dependencies so both humans and automation can reason about the Vice & Order stack.
 

@@ -43,7 +43,7 @@ Welcome to the working playbook for building and maintaining the Vice & Order mo
 - [UI Testing Checklist](ui/testing.md)
 - [React Pipeline Overview](ui/react-pipeline/overview.md) and supporting pages
 - [Options Attribute Reference](ui/reference/options-attributes.md)
-- [Shared Icon Library](dependencies/shared-icon-library.md)
+- [Unified Icon Library](dependencies/unified-icon-library.md)
 - [I18n Everywhere Integration](localization/i18n-integration.md)
 
 ## Content and Assets
@@ -63,7 +63,7 @@ Welcome to the working playbook for building and maintaining the Vice & Order mo
 - [Transform Gizmos](tooling/transform-gizmos.md)
 
 ## Shared Dependencies
-- [Shared Icon Library](dependencies/shared-icon-library.md)
+- [Unified Icon Library](dependencies/unified-icon-library.md)
 - [I18n Everywhere Integration](localization/i18n-integration.md)
 - [Shared Library: ExtraLib](dependencies/shared-library-extra.md) *(optional)*
 

@@ -24,7 +24,7 @@ Use this file as the entry point for LLM agents, automation scripts, and new con
 ## Agent Tasks & Conventions
 - When answering technical questions, link to the specific path and section headings rather than reproducing entire files.
 - Maintain ASCII output in generated docs; non-ASCII characters require explicit justification and existing usage.
-- Reference dependencies by both human-readable name and mod ID (see [Shared Icon Library](dependencies/shared-icon-library.md), [I18n Everywhere Integration](localization/i18n-integration.md), and the optional [Shared Library: ExtraLib](dependencies/shared-library-extra.md) guide).
+- Reference dependencies by both human-readable name and mod ID (see [Unified Icon Library](dependencies/unified-icon-library.md), [I18n Everywhere Integration](localization/i18n-integration.md), and the optional [Shared Library: ExtraLib](dependencies/shared-library-extra.md) guide).
 - Note which side of the Vice & Order console pipeline a change touches (C# backend vs React frontend) and reflect updates in `ViceAndOrder/Mod.cs` and `vno-ui` docs accordingly.
 - Update this file and [README](README.md) whenever major guidance changes.
 
