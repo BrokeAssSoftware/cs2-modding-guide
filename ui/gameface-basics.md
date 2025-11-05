@@ -18,8 +18,12 @@ Coherent Gameface (and its Cohtml engine) powers the Cities: Skylines II UI laye
 - Shorthand `background: currentColor` fails to parse—supply explicit RGBA values (or variables that resolve to RGBA) when drawing pseudo elements or icon fallbacks.
 
 ## Unsupported CSS & Selectors
-- Composite layout helpers such as `gap` and `inline-flex` are dropped during parsing. Build spacing with utility classes or `> * + *` patterns, and stick to `display: flex`.
+- Composite layout helpers such as `gap` are dropped during parsing. Build spacing with utility classes or `> * + *` patterns, and stick to explicit margins.
+- `display: inline-flex` / `display: inline-block` do not parse; prefer `display: flex` or `display: block` and handle centering with flex alignment.
 - Asset helpers like `object-fit`, `background: currentColor`, and logical shorthands (`inset`, `list-style`) do not resolve. Use absolute positioning, explicit edges, or custom pseudo-elements instead.
+- `vertical-align` has no effect in Gameface—align inline content with flexbox or line-height tweaks instead.
+- Focus treatments cannot rely on `outline`; simulate the ring with borders or box-shadows.
+- `border-radius: inherit` is rejected. Set the radius with explicit values or reuse Sass/TS constants when you need to mirror a parent.
 - Bullet lists should be rendered as custom structures (`role="list"` / `role="listitem"`) with manual markers; rely on CSS pseudo-elements instead of `list-style`.
 
 ## Pseudo Classes
