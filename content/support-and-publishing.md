@@ -8,7 +8,7 @@
 
 ## Policy and Data Packs
 - Base YAML or JSON policy definitions on the official `Policies` catalogue with unlock milestones and expected effects.
-- Store module manifests under `docs/modules/` and keep research artefacts under `docs/research/`.
+- Store module manifests under `docs/modules/` and keep research artefacts under `../vice-and-order-research/`.
 - Bump dependency versions alongside data-only updates so downstream modules know to refresh.
 - Add validation scripts (CI or command-line) to lint manifests and catch missing fields.
 

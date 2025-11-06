@@ -17,7 +17,7 @@ Use this file as the entry point for LLM agents, automation scripts, and new con
 7. **Options <-> UI Integration** – review the “Vice & Order Console” section in [React Pipeline (overview)](ui/react-pipeline/overview.md) for the current split between C# trigger bindings (`ViceAndOrder/Mod`) and the React modal (`vno-ui`).
 
 ## Cross-References
-- External wiki links and research snapshots live in `docs/research/wiki/` and `docs/research/mods/`.
+- External wiki links and research snapshots live in `../vice-and-order-research/wiki/` and `../vice-and-order-research/mods/`.
 - Shared dependency docs reference individual module briefings under `docs/vision/` and `docs/modules/`.
 - Backlog stories cite terminology and performance targets from [Performance Targets and Terminology](architecture/performance-and-terminology.md).
 
@@ -33,4 +33,5 @@ Use this file as the entry point for LLM agents, automation scripts, and new con
 - When docs conflict, defer to the most recently updated file (tracked via git) and flag inconsistencies for follow-up.
 
 Keep this briefing current so agents and teammates can navigate the guide without context-switching.
+
 

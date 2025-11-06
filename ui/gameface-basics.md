@@ -48,7 +48,8 @@ Coherent Gameface (and its Cohtml engine) powers the Cities: Skylines II UI laye
 
 ## References
 - Official feature tables: Coherent Gameface documentation - `https://docs.coherent-labs.com/unity-gameface/content_development/supported_features_tables/`
-- Cities: Skylines II wiki notes on UI modding - `docs/research/wiki/ui_modding_reference.md`
-- Localisation caveats (missing Intl APIs) - `docs/research/wiki/localize_your_mod.md`
+- Cities: Skylines II wiki notes on UI modding - `../vice-and-order-research/wiki/ui_modding_reference.md`
+- Localisation caveats (missing Intl APIs) - `../vice-and-order-research/wiki/localize_your_mod.md`
 
 Use this page as the living checklist for Gameface quirks. Update it whenever we discover a new limitation or workaround so future contributors and agents can avoid rediscovering the same issues.
+

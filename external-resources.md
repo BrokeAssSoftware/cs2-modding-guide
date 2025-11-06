@@ -40,7 +40,8 @@ _Dependency stance_: Vice & Order ships with Unified Icon Library and I18n Every
 
 ## Local Snapshots
 
-- `docs/research/wiki/` - archived wiki content for offline reference (`modding_toolchain_reference.md`, `ui_modding_reference.md`, etc.).
-- `docs/research/mods/` - source excerpts and field notes from dissected mods (Realistic Path Finding, Time2Work, Achievement Fixer).
+- `../vice-and-order-research/wiki/` - archived wiki content for offline reference (`modding_toolchain_reference.md`, `ui_modding_reference.md`, etc.).
+- `../vice-and-order-research/mods/` - source excerpts and field notes from dissected mods (Realistic Path Finding, Time2Work, Achievement Fixer).
 
 Keep this list curated: remove dead links, add patch notes, SDK changelogs, and new community guides as they appear.
+
