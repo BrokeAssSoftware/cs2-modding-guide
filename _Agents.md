@@ -1,4 +1,28 @@
-﻿# CS2 Modding Guide - Agents Briefing
+---
+FrontmatterVersion: 1
+DocumentType: Guide
+Title: CS2 Modding Guide Agents
+Summary: Collaboration and navigation briefing for the CS2 modding guide, oriented to agents and contributors.
+Created: 2025-11-20
+Updated: 2025-11-20
+Owners:
+  - codex
+References:
+  - Label: Workspace AGENTS
+    Path: ../../AGENTS.md
+  - Label: Workspace Guide
+    Path: ../../WORKSPACE_GUIDE.md
+  - Label: Instruction Documents Bootstrap
+    Path: ../../.guide/prompts/common/getting-started/01_InstructionDocumentsBootstrap.md
+  - Label: Projects AGENTS
+    Path: ../AGENTS.md
+  - Label: Projects GUIDE
+    Path: ../GUIDE.md
+  - Label: CS2 Modding Guide README
+    Path: ./README.md
+---
+
+# CS2 Modding Guide - Agents Briefing
 
 Use this file as the entry point for LLM agents, automation scripts, and new contributors who need to navigate `docs/cs2-modding-guide/` quickly.
 

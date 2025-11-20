@@ -1,3 +1,31 @@
+---
+FrontmatterVersion: 1
+DocumentType: Guide
+Title: CS2 Modding Guide README
+Summary: Orientation and index for the Vice & Order CS2 modding guide, curated from official docs, community research, and decomp studies.
+Created: 2025-11-20
+Updated: 2025-11-20
+Owners:
+  - codex
+References:
+  - Label: Workspace README
+    Path: ../../README.md
+  - Label: Workspace AGENTS
+    Path: ../../AGENTS.md
+  - Label: Workspace Guide
+    Path: ../../WORKSPACE_GUIDE.md
+  - Label: Instruction Documents Bootstrap
+    Path: ../../.guide/prompts/common/getting-started/01_InstructionDocumentsBootstrap.md
+  - Label: Projects README
+    Path: ../README.md
+  - Label: Projects AGENTS
+    Path: ../AGENTS.md
+  - Label: Projects GUIDE
+    Path: ../GUIDE.md
+  - Label: CS2 Modding Guide Agents
+    Path: ./Agents.md
+---
+
 # Vice & Order CS2 Modding Guide
 
 Welcome to the working playbook for building and maintaining the Vice & Order mod ecosystem. Everything here is curated from official Cities: Skylines II documentation, community research, and lessons learned from dissected mods such as Realistic Path Finding, Achievement Fixer, and Time2Work.
