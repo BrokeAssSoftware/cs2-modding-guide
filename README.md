@@ -1,134 +1,82 @@
 ---
 FrontmatterVersion: 1
 DocumentType: Guide
-Title: CS2 Modding Guide README
-Summary: Orientation and index for the Vice & Order CS2 modding guide, curated from official docs, community research, and decomp studies.
+Title: CS2 Modding Handbook README
+Summary: Orientation and index for the CS2 Modding Handbook - a source-verified, technique-organized guide for writing Cities Skylines II code and UI mods, built for AI agents and human modders.
 Created: 2025-11-20
-Updated: 2025-11-20
+Updated: 2026-07-04
 Owners:
   - codex
 References:
-  - Label: Workspace README
-    Path: ../../README.md
-  - Label: Workspace AGENTS
-    Path: ../../AGENTS.md
-  - Label: Workspace Guide
-    Path: ../../WORKSPACE_GUIDE.md
-  - Label: Instruction Documents Bootstrap
-    Path: ../../.guide/prompts/common/getting-started/01_InstructionDocumentsBootstrap.md
-  - Label: Projects README
-    Path: ../README.md
-  - Label: Projects AGENTS
-    Path: ../AGENTS.md
-  - Label: Projects GUIDE
-    Path: ../GUIDE.md
-  - Label: CS2 Modding Guide Agents
-    Path: ./Agents.md
+  - Label: Agents (operating manual)
+    Path: ./AGENTS.md
+  - Label: LLM entry index
+    Path: ./llms.txt
+  - Label: Technique Index
+    Path: ./technique-index.md
+  - Label: Maintenance guide
+    Path: ./GUIDE.md
 ---
 
-# Vice & Order CS2 Modding Guide
+# CS2 Modding Handbook
 
-Welcome to the working playbook for building and maintaining the Vice & Order mod ecosystem. Everything here is curated from official Cities: Skylines II documentation, community research, and lessons learned from dissected mods such as Realistic Path Finding, Achievement Fixer, and Time2Work.
+A working playbook for building **Cities: Skylines II** code and UI mods. Everything here is curated from official Cities: Skylines II documentation, community research, and **source-verified study of real, public mods** - every code claim is cited to a specific mod at a pinned commit.
 
-## Start Here
-- [Agents](Agents.md) - orientation for automation assistants and newcomers.
-- [Setup Overview](setup/overview.md) - launch profiles, toolchain installation, project bootstrap, and publishing routines.
-- [Architecture Overview](architecture/overview.md) - module lifecycle, dependency checks, shared terminology, and API contracts.
-- [Simulation Overview](simulation/overview.md) - patterns for replacing vanilla systems, templates, diagnostics, and testing.
-- [Operations Overview](operations/overview.md) - logging, debugging, release management, automation, and incident response.
-- [UI Overview](ui/overview.md) - Options UI patterns, key bindings, runtime panels, and React guidance.
-- [Patterns Overview](patterns/overview.md) - reusable code snippets for common module constructs.
+It is written to serve two audiences: **AI coding agents** writing mods (see [llms.txt](llms.txt) and [AGENTS.md](AGENTS.md)) and **human modders**. If you are contributing, read [AGENTS.md](AGENTS.md) first.
 
-## Setup
-- [Launch Profiles and Developer Flags](setup/launch-profiles.md)
-- [Toolchain Installation](setup/toolchain-installation.md)
-- [Bootstrap a Code Mod](setup/code-mod-bootstrap.md)
-- [Bootstrap a UI Project](setup/ui-project-bootstrap.md)
-- [Build and Publish Workflow](setup/build-and-publish.md)
-- [Environment Health Checks](setup/environment-health-checks.md)
+## How this guide is organised (Diataxis)
 
-## Architecture
-- [Module Layout](architecture/module-layout.md)
-- [Lifecycle and Initialization](architecture/lifecycle-and-initialization.md)
-- [Settings and Data Management](architecture/settings-and-data.md)
-- [System Scheduling](architecture/system-scheduling.md)
-- [Dependency Strategy](architecture/dependency-strategy.md)
-- [Performance Targets and Terminology](architecture/performance-and-terminology.md)
+Every page serves ONE mode (declared in its `diataxis:` frontmatter); modes are the primary navigation:
 
-## Simulation
-- [Overview](simulation/overview.md)
-- [Replacing Vanilla Systems](simulation/replacing-vanilla-systems.md)
-- [System Template](simulation/system-template.md)
-- [Multi-Phase Scheduling](simulation/multi-phase-scheduling.md)
-- [Conditional Execution and Diagnostics](simulation/conditional-and-diagnostics.md)
-- [Testing and Recovery](simulation/testing-and-recovery.md)
+- **Tutorials** (learning) - `tutorials/`: get from zero to a running mod.
+- **How-to** (task) - `how-to/`: accomplish a specific task. Includes the technique **recipes** cookbook.
+- **Reference** (information) - `reference/`: look things up. We link out to the official wiki rather than duplicate it.
+- **Explanation** (understanding) - `explanation/`: the concepts and "why".
+- **Case studies** - `case-studies/`: how techniques combine in real mods.
 
-## UI and Interaction
-- [Options UI Patterns](ui/options.md)
-- [Key Binding Pipeline](ui/key-bindings.md)
-- [Runtime UI Panels](ui/runtime-ui.md)
-- [Dependency Handling](ui/dependency-handling.md)
-- [UI Testing Checklist](ui/testing.md)
-- [React Pipeline Overview](ui/react-pipeline/overview.md) and supporting pages
-- [Options Attribute Reference](ui/reference/options-attributes.md)
-- [Unified Icon Library](dependencies/unified-icon-library.md)
-- [I18n Everywhere Integration](localization/i18n-integration.md)
+Two cross-cutting aids: the [Technique Index](technique-index.md) ("which technique, when" - the catalog of technique families + coverage) and [llms.txt](llms.txt) (the agent entry index).
 
-## Content and Assets
-- [Overview](content/overview.md)
-- [PBR Asset Workflow](content/pbr-workflow.md)
-- [Editor Integration](content/editor-integration.md)
-- [Map and Scenario Authoring](content/map-authoring.md)
-- [Support and Publishing](content/support-and-publishing.md)
-- [Unofficial Asset Import](content/unofficial-asset-import.md)
-- [Write Everywhere Modules](content/write-everywhere-modules.md)
-- [Asset Pack Management](content/asset-pack-management.md)
+## Index
 
-## Tooling Patterns
-- [Raycast Filters](tooling/raycast-filters.md)
-- [Sub-Element Removal](tooling/sub-element-removal.md)
-- [Validation Overrides](tooling/validation-overrides.md)
-- [Transform Gizmos](tooling/transform-gizmos.md)
+This index mirrors the agent entry index in [llms.txt](llms.txt); keep the two in sync. Each page
+declares a `status` (`source-verified` = code claims cited to a mod at a pinned commit;
+`needs-verification` = no pinned source or hedged) - see [AGENTS.md](AGENTS.md).
 
-## Shared Dependencies
-- [Unified Icon Library](dependencies/unified-icon-library.md)
-- [I18n Everywhere Integration](localization/i18n-integration.md)
-- [Shared Library: ExtraLib](dependencies/shared-library-extra.md) *(optional)*
+### Start here
+- [AGENTS.md](AGENTS.md) - operating manual (conventions, source-of-truth rule, templates, the fold-in loop).
+- [llms.txt](llms.txt) - entry index for AI agents.
+- [Technique Index](technique-index.md) - choose an approach (family catalog + coverage status).
 
-## Development Patterns
-- [Patterns Overview](patterns/overview.md)
-- [Mod Bootstrap](patterns/mod-bootstrap.md)
-- [Settings Patterns](patterns/settings.md)
-- [Localisation Helper](patterns/localization.md)
-- [System Registration](patterns/system-registration.md)
+### Tutorials (learning)
+- [Getting started](tutorials/getting-started.md), [Your first code mod](tutorials/first-code-mod.md), [Your first UI mod](tutorials/first-ui-mod.md), [Build and publish](tutorials/build-and-publish.md)
 
-## Operations
-- [Operations Overview](operations/overview.md)
-- [Logging and Debugging](operations/logging-and-debugging.md)
-- [Memory and Performance](operations/memory-and-performance.md)
-- [Security and Stability](operations/security-and-stability.md)
-- [Release Checklist](operations/release-checklist.md)
-- [Automation and CI](operations/automation-and-ci.md)
-- [Incident Response](operations/incident-response.md)
+### How-to (task)
+- **Recipes:** [index](how-to/recipes/README.md) - **all 59 technique families (A-BG) are source-verified** (A-AB original; AC-BG from the 2026-07-05 deep re-mine); the [recipes index](how-to/recipes/README.md) has the full grouped list, and the [Technique Index](technique-index.md) maps each family letter to its canonical mods and coverage.
+- **Tooling:** [raycast filters](how-to/tooling/raycast-filters.md), [sub-element removal](how-to/tooling/sub-element-removal.md), [transform gizmos](how-to/tooling/transform-gizmos.md), [validation overrides](how-to/tooling/validation-overrides.md).
+- **UI:** [options UI](how-to/ui/options-ui.md), [key bindings](how-to/ui/key-bindings.md), [runtime panels](how-to/ui/runtime-ui.md), [dependency handling](how-to/ui/dependency-handling.md), [React dev loop](how-to/ui/react-development.md), [module registry](how-to/ui/module-registry.md), [React testing](how-to/ui/react-testing.md).
+- **Content:** [PBR asset workflow](how-to/content/pbr-asset-workflow.md), [editor integration](how-to/content/editor-integration.md), [map authoring](how-to/content/map-authoring.md), [asset-pack management](how-to/content/asset-pack-management.md), [unofficial asset import](how-to/content/unofficial-asset-import.md), [Write Everywhere modules](how-to/content/write-everywhere-modules.md), [support & publishing](how-to/content/support-and-publishing.md).
+- **Localization:** [I18n Everywhere integration](how-to/localization/i18n-integration.md).
+- **Operations:** [logging & debugging](how-to/operations/logging-and-debugging.md), [MSBuild build/packaging automation](how-to/operations/msbuild-packaging.md), [release checklist](how-to/operations/release-checklist.md), [security & stability](how-to/operations/security-and-stability.md), [UI testing checklist](how-to/operations/ui-testing-checklist.md), [memory & performance](how-to/operations/memory-and-performance.md), [incident response](how-to/operations/incident-response.md), [CI automation](how-to/operations/ci-automation.md), [testing & recovery](how-to/operations/testing-and-recovery.md).
 
-## Case Studies
-- [Overview](case-studies/overview.md)
-- [Realistic Path Finding](case-studies/realistic-path-finding.md)
-- [Achievement Fixer](case-studies/achievement-fixer.md)
-- [Time2Work (Realistic Trips)](case-studies/time2work-realistic-trips.md)
-- [Anarchy](case-studies/anarchy.md)
-- [Better Bulldozer](case-studies/better-bulldozer.md)
-- [Extra Detailing Suite](case-studies/extra-detailing-suite.md)
-- [Localization & UI Infrastructure](case-studies/localization-and-ui.md)
-- [Write Everywhere Ecosystem](case-studies/write-everywhere-ecosystem.md)
-- [Asset Packs Manager](case-studies/asset-packs-manager.md)
+### Explanation (understanding)
+- **Fundamentals (read before coding):** [ECS/DOTS fundamentals](explanation/ecs-fundamentals.md), [Harmony patching](explanation/harmony-patching.md), [React UI consume side](explanation/react-ui.md).
+- [Mod lifecycle](explanation/mod-lifecycle.md), [system scheduling](explanation/system-scheduling.md), [multi-phase scheduling](explanation/multi-phase-scheduling.md), [module layout](explanation/module-layout.md), [dependency strategy](explanation/dependency-strategy.md), [serialization](explanation/serialization.md), [system replacement](explanation/system-replacement.md), [conditional execution](explanation/conditional-execution.md), [settings vs data](explanation/settings-and-data.md), [Gameface runtime](explanation/gameface-runtime.md), [UI <-> C# communication](explanation/ui-cs-communication.md), [research hygiene](explanation/research-hygiene.md).
 
-## Reference Material
-- [External Resources](external-resources.md)
+### Reference (lookup)
+- [System update phases](reference/system-update-phases.md), [SDK & toolchain](reference/sdk-and-toolchain.md), [ECS components catalog](reference/ecs-components-catalog.md), [glossary](reference/glossary.md).
+- Game systems: [economy](reference/game-systems/economy.md), [citizens & households](reference/game-systems/citizens-households.md), [districts & policies](reference/game-systems/districts-policies.md), [pathfinding & transit](reference/game-systems/pathfinding-transit.md) (patch-sensitive).
+- [Performance & terminology](reference/performance-and-terminology.md), [options UI attributes](reference/options-attributes.md), [external resources](reference/external-resources.md).
+- Shared libraries: [overview](reference/shared-libraries/README.md), [Unified Icon Library](reference/shared-libraries/unified-icon-library.md), [ExtraLib](reference/shared-libraries/extralib.md).
 
-## Maintenance Notes
-- Keep all files ASCII unless existing content requires otherwise.
-- Update [Agents](Agents.md) and this index when major guidance changes.
-- Reference mod IDs when documenting dependencies so automation can enforce publish requirements.
+### Case studies (worked examples)
+- **Original:** [Realistic Path Finding](case-studies/realistic-path-finding.md), [Anarchy](case-studies/anarchy.md), [Achievement Fixer](case-studies/achievement-fixer.md), [Better Bulldozer](case-studies/better-bulldozer.md), [Extra Detailing Suite](case-studies/extra-detailing-suite.md), [Time2Work (Realistic Trips)](case-studies/time2work-realistic-trips.md), [Write Everywhere ecosystem](case-studies/write-everywhere-ecosystem.md), [Localization & UI stack](case-studies/localization-and-ui.md), [Asset Packs Manager](case-studies/asset-packs-manager.md), [Advanced Road Naming](case-studies/advanced-road-naming.md), [Outside Traffic Adjuster](case-studies/outside-traffic-adjuster.md), [Magic Mail](case-studies/magic-mail.md).
+- **2026-07-05 deep re-mine:** [Traffic Tool Essentials](case-studies/traffic-tool-essentials.md), [Market Based Economy](case-studies/market-based-economy.md), [Road Speed Adjuster](case-studies/road-speed-adjuster.md), [Smooth Left-Hand Traffic](case-studies/smooth-left-hand-traffic.md), [Realistic Job Search](case-studies/realistic-jobsearch.md), [Magic Garbage Truck](case-studies/magic-garbage-truck.md), [Advanced Simulation Speed](case-studies/advanced-simulation-speed.md), [Abandoned Building Remover](case-studies/abandoned-building-remover.md), [Elections (RT module)](case-studies/elections-rt-module.md), [Custom Chirps](case-studies/custom-chirps.md), [Demand Modifier](case-studies/demand-modifier.md).
 
-Use this repository as the authoritative source for CS2-related workflows inside Vice & Order. Contributions should prioritise actionable steps, code examples, and references to upstream documentation.
+## Conventions
+- Keep all files clean ASCII.
+- Every code/mechanism claim cites real source (`repo/...#L` at a pinned commit) via a mod's research dossier; never document from inference. See [AGENTS.md](AGENTS.md).
+- Reference dependencies by both name and mod ID.
+- Update [AGENTS.md](AGENTS.md), [llms.txt](llms.txt), and this index when structure changes.
+
+## Provenance
+Maintained under the Vice & Order project; the real-mod examples come from that project's source-verified research dossiers. The guide itself is general-purpose CS2 modding knowledge, usable by anyone.

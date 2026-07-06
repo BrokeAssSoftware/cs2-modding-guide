@@ -1,0 +1,103 @@
+# CS2 Modding Handbook
+
+> A source-verified, technique-organized handbook for writing Cities: Skylines II (CS2) code and UI mods. Built for AI coding agents and human modders. Every code claim is cited to a real, public mod at a pinned commit. Organized by Diataxis mode (tutorials / how-to / reference / explanation) plus worked case studies.
+
+This file is the agent entry point. Pages are self-contained markdown. Start with the Technique Index to pick an approach, then jump to the matching how-to recipe; use Reference for lookups and Explanation for concepts. Every page declares a `status` (`source-verified` = code claims cited to a mod at a pinned commit; `needs-verification` = no pinned source or hedged) and currency fields (`source_version`/`last_reverified`). Current live game: 1.6.0f1 "Summer Solstice" (2026-06-22), SDK 2.1.2.
+
+## Start here
+- [README](README.md): human orientation, the Diataxis map, and the full chapter index.
+- [AGENTS](AGENTS.md): operating manual - the rules for reading, citing, and contributing (read before editing).
+- [Technique Index](technique-index.md): "which technique, when" - the catalog of modding technique families, their canonical mods, applicability, and coverage status. The best place to choose an approach.
+
+## Tutorials (learning - zero to a running mod)
+- [Getting started](tutorials/getting-started.md): install the toolchain, set developer flags, verify your environment.
+- [Your first code mod](tutorials/first-code-mod.md): scaffold, name, and build a C# code mod from the template.
+- [Your first UI mod](tutorials/first-ui-mod.md): scaffold a React/TypeScript UI bundle (npx create-csii-ui-mod) and wire the MSBuild UI build.
+- [Build and publish](tutorials/build-and-publish.md): the daily build loop and publishing to PDX Mods.
+
+## How-to (task-oriented recipes)
+- [Recipes index](how-to/recipes/README.md): source-verified how-tos, one per technique family.
+- [Prefab-field override](how-to/recipes/prefab-field-override.md): change a vanilla prefab's component data (TryGet -> component -> AddComponentData).
+- [ECS system replacement via ordering](how-to/recipes/ecs-system-replacement-ordering.md): disable a vanilla system and take over with UpdateBefore/After (no Harmony).
+- [ECS ISerializable save data / SaveVersion](how-to/recipes/ecs-serializable-savedata.md): persist custom component data across save/load with version migration.
+- [SettingsUI patterns](how-to/recipes/settings-patterns.md): sliders/sections/hide-by-condition/buttons/presets and [FileLocation] persistence.
+- [Localization helper](how-to/recipes/localization-helper.md): IDictionarySource locale sources and multi-locale AddSource registration.
+- [System registration](how-to/recipes/system-registration.md): schedule systems with UpdateAt/UpdateBefore/UpdateAfter across phases.
+- [System template](how-to/recipes/system-template.md): a GameSystemBase/SystemBase skeleton with cached queries and optional Burst jobs.
+- Technique recipes (families C-AB, all source-verified): [disable/replace vanilla system](how-to/recipes/disable-replace-vanilla-system.md), [ECS query rewriting](how-to/recipes/ecs-query-rewriting.md), [Burst IJobChunk/IJobEntity](how-to/recipes/burst-ijobchunk.md), [periodic UpdateInterval system](how-to/recipes/periodic-updateinterval-system.md), [event-driven ModificationEnd/barrier](how-to/recipes/event-driven-modificationend.md), [JSON side-car persistence](how-to/recipes/json-sidecar-persistence.md), [one-shot prefab multiplier](how-to/recipes/one-shot-prefab-multiplier.md), [DynamicBuffer&lt;Resources&gt; nudging](how-to/recipes/dynamicbuffer-resources-nudge.md), [preset profile arrays](how-to/recipes/preset-profile-arrays.md).
+- Harmony recipes: [postfix on price getters](how-to/recipes/harmony-price-getter-postfix.md), [reverse-patch bridge](how-to/recipes/harmony-redirector-reverse-patch.md), [private-job prefix](how-to/recipes/harmony-private-job-postfix.md), [Traverse private fields](how-to/recipes/harmony-traverse-private-fields.md), [weather/climate override](how-to/recipes/weather-climate-override.md).
+- UI/tooling recipes: [UISystemBase React binding](how-to/recipes/uisystembase-react-binding.md), [COUI host registration](how-to/recipes/coui-host-registration.md), [render-pipeline overlay](how-to/recipes/render-pipeline-overlay.md), [tool drag-select](how-to/recipes/tool-drag-select.md), [N-waypoint tool](how-to/recipes/tool-nwaypoint-path.md), [NameSystem custom names](how-to/recipes/namesystem-custom-names.md), [network composition bitmasks](how-to/recipes/network-composition-bitmasks.md).
+- Platform recipes: [reflection mod bridges](how-to/recipes/reflection-mod-bridges.md), [MainThreadDispatcher async](how-to/recipes/mainthread-dispatcher-async.md).
+- Expansion recipes (families AC-BG, 2026-07-05 deep re-mine) - simulation/ECS: [prefab clone synthesis](how-to/recipes/prefab-clone-synthesis.md), [aggregate topology mutation](how-to/recipes/aggregate-topology-mutation.md), [verify-and-reapply override](how-to/recipes/verify-and-reapply-override.md), [ECS cascade deletion](how-to/recipes/ecs-cascade-deletion.md), [reversible override](how-to/recipes/reversible-override-baseline.md), [pathfind candidate rewrite](how-to/recipes/pathfind-candidate-rewrite.md), [heuristic scoring & selection](how-to/recipes/heuristic-scoring-selection.md), [EWMA feedback loop](how-to/recipes/ewma-feedback-loop.md), [timed ECS agent FSM](how-to/recipes/ecs-agent-fsm.md), [time tick-rate override](how-to/recipes/time-tick-rate-override.md), [IconCommandBuffer notification icons](how-to/recipes/icon-command-buffer.md), [durable network-component write](how-to/recipes/durable-network-component-write.md).
+- Expansion recipes - Harmony/interop/platform: [postfix a vanilla System.OnUpdate](how-to/recipes/harmony-system-onupdate-postfix.md), [cross-mod service protocol](how-to/recipes/cross-mod-service-protocol.md), [Chirper feed injection](how-to/recipes/chirper-feed-injection.md), [platform achievement control](how-to/recipes/platform-achievement-control.md), [debug CSV telemetry + ECS introspection](how-to/recipes/debug-telemetry-introspection.md).
+- Expansion recipes - UI/tooling: [augment vanilla UI (moduleRegistry.extend)](how-to/recipes/vanilla-ui-augmentation.md), [simulation-speed control](how-to/recipes/simulation-speed-control.md), [floating-panel framework](how-to/recipes/floating-panel-framework.md), [status/observability binding](how-to/recipes/status-observability-binding.md), [IMGUI debug overlay](how-to/recipes/imgui-debug-overlay.md), [custom snap + raycast engine](how-to/recipes/custom-snap-raycast-framework.md), [gate-only coordination](how-to/recipes/gate-only-coordination.md), [polygon-zone tool](how-to/recipes/polygon-zone-tool.md).
+- Expansion recipes - content/platform: [custom AssetDatabase registration](how-to/recipes/custom-assetdatabase-registration.md), [mod-extensible formula surface](how-to/recipes/mod-extensible-formula-surface.md), [HDRP light from ECS](how-to/recipes/hdrp-light-from-ecs.md), [enumerate installed mods / playset](how-to/recipes/modsdata-playset-autodiscovery.md), [prefab-subnet traversal](how-to/recipes/prefab-subnet-traversal.md).
+- [Operations: logging & debugging](how-to/operations/logging-and-debugging.md), [MSBuild build/packaging automation](how-to/operations/msbuild-packaging.md), [release checklist](how-to/operations/release-checklist.md), [security & stability](how-to/operations/security-and-stability.md): process how-tos.
+- Tooling: [raycast filters](how-to/tooling/raycast-filters.md), [sub-element removal](how-to/tooling/sub-element-removal.md), [transform gizmos](how-to/tooling/transform-gizmos.md), [validation overrides](how-to/tooling/validation-overrides.md): custom ToolBaseSystem patterns.
+- UI: [options UI](how-to/ui/options-ui.md), [key bindings](how-to/ui/key-bindings.md), [runtime panels](how-to/ui/runtime-ui.md), [dependency handling](how-to/ui/dependency-handling.md), [React dev loop](how-to/ui/react-development.md), [module registry](how-to/ui/module-registry.md), [React testing](how-to/ui/react-testing.md), [UI testing checklist](how-to/operations/ui-testing-checklist.md).
+- Content: [PBR asset workflow](how-to/content/pbr-asset-workflow.md), [editor integration](how-to/content/editor-integration.md), [map authoring](how-to/content/map-authoring.md), [asset-pack management](how-to/content/asset-pack-management.md), [unofficial asset import](how-to/content/unofficial-asset-import.md), [Write Everywhere modules](how-to/content/write-everywhere-modules.md), [support & publishing](how-to/content/support-and-publishing.md).
+- Localization: [I18n Everywhere integration](how-to/localization/i18n-integration.md).
+- More operations: [memory & performance](how-to/operations/memory-and-performance.md), [incident response](how-to/operations/incident-response.md), [CI automation](how-to/operations/ci-automation.md), [testing & recovery](how-to/operations/testing-and-recovery.md).
+
+## Explanation (concepts)
+- [ECS/DOTS fundamentals](explanation/ecs-fundamentals.md): writing the OnUpdate body - EntityQuery, ComponentLookup, EntityCommandBuffer/sync points, DynamicBuffer, Burst/IJobChunk. Read before coding a system.
+- [Harmony patching](explanation/harmony-patching.md): prefix/postfix/transpiler/reverse-patch, targeting overloaded/by-ref methods, PatchAll vs manual, Burst/collision hazards.
+- [React UI (consume side)](explanation/react-ui.md): the Gameface/React consume model - useValue/trigger/engine.on, moduleRegistry, the C#<->TSX boundary.
+- [Research hygiene](explanation/research-hygiene.md): how to tell when a mod's internals are verifiable, what is auth-gated, and how to gate an honest gap instead of fabricating one.
+- [Mod lifecycle & initialization](explanation/mod-lifecycle.md): what IMod.OnLoad/OnDispose do and the canonical bootstrap order.
+- [System scheduling](explanation/system-scheduling.md): SystemUpdatePhase, UpdateBefore/After, and update-interval tuning.
+- [Multi-phase scheduling](explanation/multi-phase-scheduling.md): registering one system across several phases (Deserialize/Serialize/gameplay) and branching on context.
+- [Module layout](explanation/module-layout.md): one identifier for assembly/namespace/mod-ID, folder shape, and the CSII_TOOLPATH MSBuild import.
+- [Dependency strategy](explanation/dependency-strategy.md): declare/reference/validate/degrade for shared libraries; runtime assembly detection.
+- [Save/load serialization](explanation/serialization.md): the Serialize/Deserialize phases, ISerializable/IDefaultSerializable, and versioned payloads.
+- [System replacement](explanation/system-replacement.md): why/when to disable a vanilla system and register a replacement, and the risks.
+- [Conditional execution](explanation/conditional-execution.md): RequireForUpdate, GameMode gates, early-outs, and dev-mode diagnostics.
+- [Settings vs data](explanation/settings-and-data.md): choosing between ModSetting, ECS save-stream, and side-car JSON.
+- [Gameface runtime](explanation/gameface-runtime.md): the Coherent/Gameface constraints and the C#<->React boundary.
+- [UI <-> C# communication](explanation/ui-cs-communication.md): the ValueBinding / TriggerBinding model on UISystemBase.
+
+## Reference (lookup)
+- [Game systems: economy](reference/game-systems/economy.md): vanilla economy systems/components/hook points (EconomyUtils price getters, WorkProvider, tax/budget). Patch-sensitive.
+- [Game systems: citizens & households](reference/game-systems/citizens-households.md): citizen/household/worker/student components, needs, behavior, death. Patch-sensitive.
+- [Game systems: districts & policies](reference/game-systems/districts-policies.md): district area components and modifier buffers (policy system largely unverified). Patch-sensitive.
+- [Game systems: pathfinding & transit](reference/game-systems/pathfinding-transit.md): the transit perceived-cost model, PathUtils drive-spec getters, PathfindCosts, CarLaneFlags, and the CS2 speed-unit (/1.8) gotcha. Patch-sensitive.
+- [System update phases](reference/system-update-phases.md): the SystemUpdatePhase members mods actually schedule into, with meaning + ordering, each cited.
+- [SDK & toolchain](reference/sdk-and-toolchain.md): Mod.props/Mod.targets/CSII_TOOLPATH, the Colossal/Game/Unity assemblies, the IMod surface.
+- [ECS components catalog](reference/ecs-components-catalog.md): vanilla Game.* components/systems the corpus reads/writes, each cited to a real mod. Patch-sensitive.
+- [Glossary](reference/glossary.md): DOTS/ECS/CS2/modding vocabulary A-Z.
+- [Performance & terminology](reference/performance-and-terminology.md): DOTS/ECS/Burst glossary and how to set project-specific perf targets.
+- [Options UI attributes](reference/options-attributes.md): lookup table of [SettingsUI*] attributes (corpus-verified vs unverified marked).
+- Shared libraries: [overview](reference/shared-libraries/README.md), [Unified Icon Library](reference/shared-libraries/unified-icon-library.md) (modId 74417, coui:// icons), [ExtraLib](reference/shared-libraries/extralib.md) (modId 75724, COUI host + ExtraPanels).
+- [External resources](reference/external-resources.md): official CS2 wiki, PDX Mods, community canon, key libraries (link-out).
+
+## Case studies (worked examples)
+- [Realistic Path Finding](case-studies/realistic-path-finding.md): system replacement + reflection bridge + Burst jobs.
+- [Anarchy](case-studies/anarchy.md): flag-bit error suppression, orthogonal Harmony patches, network composition, XML persistence.
+- [Achievement Fixer](case-studies/achievement-fixer.md): windowed flag enforcement + install-once localized banner override, no Harmony.
+- [Better Bulldozer](case-studies/better-bulldozer.md): raycast retargeting (Harmony), sub-element removal, UISystemBase bindings, debounced deletes.
+- [Extra Detailing Suite](case-studies/extra-detailing-suite.md): transform-gizmo tool, reflective snap framework, prefab UIObject override.
+- [Time2Work (Realistic Trips)](case-studies/time2work-realistic-trips.md): ISerializable schedules, reflection bridges, full-getter Harmony, Burst, climate override.
+- [Write Everywhere ecosystem](case-studies/write-everywhere-ecosystem.md): reverse-patch bridge API, COUI host both ways, TypeScript moduleRegistry UI.
+- [Localization & UI stack](case-studies/localization-and-ui.md): UIL icon hosting + I18n Everywhere localization-dictionary hook.
+- [Advanced Road Naming](case-studies/advanced-road-naming.md): pure-ECS IDefaultSerializable + NameSystem custom names + N-waypoint tool + drag-select + overlay, no Harmony.
+- [Outside Traffic Adjuster](case-studies/outside-traffic-adjuster.md): the minimal worked example - prefab-field override (family A) + a 4-slider settings screen (family N).
+- [Magic Mail](case-studies/magic-mail.md): periodic UpdateInterval system + DynamicBuffer<Resources> nudging + one-shot non-stacking prefab multiplier.
+- [Asset Packs Manager](case-studies/asset-packs-manager.md): playset/asset-pack management (storefront-described; source unverified).
+- [Traffic Tool Essentials](case-studies/traffic-tool-essentials.md): 3 layered no-Harmony ECS subsystems - Green Wave gate-only sync, Depot polygon-zones, ring-buffer stats.
+- [Market Based Economy](case-studies/market-based-economy.md): manual price postfixes + elastic-price manager + WorkProvider floor + profit-tax + IMGUI analytics.
+- [Road Speed Adjuster](case-studies/road-speed-adjuster.md): durable vanilla-network write (survives uninstall) + three-layer persistence + drag-select tool.
+- [Smooth Left-Hand Traffic](case-studies/smooth-left-hand-traffic.md): PrefabUpdate subnet inversion + eligibility scan + host->upgrade recursion + MouseToolOptions button.
+- [Realistic Job Search](case-studies/realistic-jobsearch.md): PathfindSetupSystem candidate rewrite + gravity/softmax + acceptance-gate veto + CSV telemetry.
+- [Magic Garbage Truck](case-studies/magic-garbage-truck.md): IconCommandBuffer purge + one-shot rescale + self-restoring disable + refresh-on-read status.
+- [Advanced Simulation Speed](case-studies/advanced-simulation-speed.md): SimulationSystem.selectedSpeed control + moduleRegistry.extend toolbar augmentation + polled binding.
+- [Abandoned Building Remover](case-studies/abandoned-building-remover.md): ECS structural cascade deletion + MSBuild Burst/managed dual-path.
+- [Elections (Realistic Trips module)](case-studies/elections-rt-module.md): a module-mod extending a host's private sim - RT trip protocol, hand-built Event archetype, versioned save.
+- [Custom Chirps](case-studies/custom-chirps.md): Chirper feed injection - message-id tagging, token/marker binding, runtime-loc prefix, async image pipeline, provider bridge.
+- [Demand Modifier](case-studies/demand-modifier.md): research-hygiene cautionary - attribute-only settings verified; the live ECS mechanism is storefront-only/gated.
+
+## Optional
+- [GUIDE](GUIDE.md): maintenance workflow and validation commands.
+- See the [Technique Index](technique-index.md) for the full technique-family catalog, each family's canonical mods, and coverage status (`source-verified` vs the uncovered "wanted" list).
+
+## Status
+The Diataxis structure is complete and populated: tutorials, how-to (recipes + tooling/ui/content/operations/localization), reference, explanation, and case studies are all live and listed above. Content is generalized (no single-project coupling) and, where `status: source-verified`, cited to real public mods at pinned commits. Source pins span ~1.4 to 1.6.0f1 (several at the current 1.6.0f1); the current live game is 1.6.0f1 - see each page's `source_version`/`last_reverified`. New recipes and case studies continue to land via the fold-in loop as more mods are studied; see the Technique Index for coverage and the "wanted" gaps.
